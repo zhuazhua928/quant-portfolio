@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import Section from "@/components/Section";
 import { projects } from "@/data/projects";
@@ -34,6 +34,16 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
+  // Custom detail pages handle their own rendering
+  if (project.custom) {
+    // Dynamic import handled by dedicated page files
+    // For P1, we use a client component
+    const { default: CustomPage } = await import(
+      `@/app/projects/${slug}/CustomPage`
+    );
+    return <CustomPage />;
+  }
+
   return (
     <>
       {/* Header */}
@@ -47,6 +57,9 @@ export default async function ProjectDetailPage({
             <span>Back to Projects</span>
           </Link>
           <div className="mb-4 flex items-center gap-3">
+            <span className="font-mono text-[10px] font-bold tracking-wider text-accent">
+              {project.code}
+            </span>
             <span className="rounded-full bg-accent/8 px-2.5 py-0.5 font-mono text-xs font-medium text-accent">
               {project.category}
             </span>

@@ -18,8 +18,8 @@ export default function ProjectsPage() {
             Research & Development
           </h1>
           <p className="mt-4 max-w-2xl text-base text-muted">
-            A selection of projects spanning systematic trading, alternative
-            data infrastructure, and risk management tooling.
+            Four projects spanning systematic trading, exotic derivatives
+            research, crypto market intelligence, and behavioral finance.
           </p>
         </div>
       </section>
@@ -29,7 +29,7 @@ export default function ProjectsPage() {
       </div>
 
       <Section>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           {projects.map((project) => (
             <ProjectCard key={project.slug} project={project} />
           ))}

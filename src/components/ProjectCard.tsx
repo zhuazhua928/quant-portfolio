@@ -8,6 +8,9 @@ export default function ProjectCard({ project }: { project: Project }) {
       className="group block rounded-lg border border-border bg-card p-6 shadow-sm transition-all duration-200 hover:border-accent/20 hover:shadow-md"
     >
       <div className="mb-3 flex items-center gap-3">
+        <span className="font-mono text-[10px] font-bold tracking-wider text-accent">
+          {project.code}
+        </span>
         <span className="rounded-full bg-accent/8 px-2.5 py-0.5 font-mono text-xs font-medium text-accent">
           {project.category}
         </span>
