@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { projects } from "@/data/projects";
-import { watchlistData } from "@/data/watchlist";
+import { sessions, defaultSession, type Session } from "@/data/sessions";
+import type { WatchlistData } from "@/data/watchlist";
 
 import RegimeSummary from "@/app/watchlist/RegimeSummary";
 import RankedTable from "@/app/watchlist/RankedTable";
@@ -12,8 +13,6 @@ import AlertFeed from "@/app/watchlist/AlertFeed";
 import MiniChart from "@/app/watchlist/MiniChart";
 
 const project = projects.find((p) => p.slug === "intraday-regime-monitor")!;
-const { regime, ranking, symbols, charts, alerts } = watchlistData;
-const symbolMap = Object.fromEntries(symbols.map((s) => [s.symbol, s]));
 const WATCHLIST_SYMBOLS = ["TSLA", "NVDA", "PLTR", "MU", "HOOD", "AMD"];
 
 const TABS = ["Overview", "Logic", "Dashboard", "Alerts", "Notes"] as const;
@@ -21,6 +20,14 @@ type Tab = (typeof TABS)[number];
 
 export default function CustomPage() {
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
+  const [activeSession, setActiveSession] = useState<Session>(defaultSession);
+
+  const sessionData = activeSession.data;
+  const { regime, ranking, symbols, charts, alerts } = sessionData;
+  const symbolMap = useMemo(
+    () => Object.fromEntries(symbols.map((s) => [s.symbol, s])),
+    [symbols],
+  );
 
   return (
     <>
@@ -86,8 +93,18 @@ export default function CustomPage() {
       <div className="mx-auto max-w-6xl px-6 py-12">
         {activeTab === "Overview" && <OverviewTab />}
         {activeTab === "Logic" && <LogicTab />}
-        {activeTab === "Dashboard" && <DashboardTab />}
-        {activeTab === "Alerts" && <AlertsTab />}
+        {activeTab === "Dashboard" && (
+          <DashboardTab
+            session={activeSession}
+            sessions={sessions}
+            onSessionChange={setActiveSession}
+            regime={regime}
+            ranking={ranking}
+            symbolMap={symbolMap}
+            charts={charts}
+          />
+        )}
+        {activeTab === "Alerts" && <AlertsTab alerts={alerts} scanDate={sessionData.scanDate} />}
         {activeTab === "Notes" && <NotesTab />}
       </div>
     </>
@@ -207,19 +224,116 @@ function LogicTab() {
 /* ------------------------------------------------------------------ */
 /* Dashboard tab — embeds the full watchlist dashboard                  */
 /* ------------------------------------------------------------------ */
-function DashboardTab() {
+
+const REGIME_DOT: Record<string, string> = {
+  bullish: "bg-emerald-500",
+  bearish: "bg-red-500",
+  mixed: "bg-amber-500",
+};
+
+function SessionSelector({
+  sessions,
+  active,
+  onChange,
+}: {
+  sessions: Session[];
+  active: Session;
+  onChange: (s: Session) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {sessions.map((s) => {
+        const isActive = s.id === active.id;
+        return (
+          <button
+            key={s.id}
+            onClick={() => onChange(s)}
+            className={`group relative flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-all duration-200 ${
+              isActive
+                ? "border-accent bg-accent/5 shadow-sm"
+                : "border-border bg-card hover:border-accent/40 hover:bg-card-hover"
+            }`}
+          >
+            <span
+              className={`h-2 w-2 flex-shrink-0 rounded-full ${REGIME_DOT[s.regime]}`}
+            />
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-2">
+                <span
+                  className={`text-xs font-medium ${
+                    isActive ? "text-foreground" : "text-muted group-hover:text-foreground"
+                  }`}
+                >
+                  {s.label}
+                </span>
+                <span className="font-mono text-[10px] text-muted">
+                  {s.date}
+                </span>
+              </div>
+              <p className="mt-0.5 text-[11px] leading-tight text-muted/70">
+                {s.description}
+              </p>
+            </div>
+            {isActive && (
+              <span className="absolute -top-px left-3 right-3 h-0.5 rounded-b bg-accent" />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+interface DashboardTabProps {
+  session: Session;
+  sessions: Session[];
+  onSessionChange: (s: Session) => void;
+  regime: WatchlistData["regime"];
+  ranking: WatchlistData["ranking"];
+  symbolMap: Record<string, WatchlistData["symbols"][number]>;
+  charts: WatchlistData["charts"];
+}
+
+function DashboardTab({
+  session,
+  sessions: allSessions,
+  onSessionChange,
+  regime,
+  ranking,
+  symbolMap,
+  charts,
+}: DashboardTabProps) {
   return (
     <div className="space-y-8">
+      {/* Session header + selector */}
       <div>
         <p className="mb-1 font-mono text-[10px] font-medium uppercase tracking-widest text-muted">
-          Session Scan
+          Session Viewer
         </p>
-        <p className="text-sm text-muted">
-          Live dashboard output for{" "}
-          <span className="font-mono font-medium text-foreground">
-            {watchlistData.scanDate}
+        <p className="mb-4 text-sm text-muted">
+          Replay the monitoring dashboard for selected trading sessions.
+          Each session shows the regime classification, watchlist ranking,
+          and intraday signals as captured at end of day.
+        </p>
+        <SessionSelector
+          sessions={allSessions}
+          active={session}
+          onChange={onSessionChange}
+        />
+      </div>
+
+      {/* Active session date */}
+      <div className="flex items-center gap-3">
+        <span
+          className={`h-2.5 w-2.5 rounded-full ${REGIME_DOT[session.regime]}`}
+        />
+        <div>
+          <span className="text-sm font-medium text-foreground">
+            {session.label}
           </span>
-        </p>
+          <span className="mx-2 text-muted/40">|</span>
+          <span className="font-mono text-sm text-muted">{session.date}</span>
+        </div>
       </div>
 
       <RegimeSummary regime={regime} />
@@ -261,6 +375,11 @@ function DashboardTab() {
           ))}
         </div>
       </div>
+
+      {/* Footer note */}
+      <p className="border-t border-border/50 pt-4 text-center text-[11px] text-muted/60">
+        Replayable session viewer — curated sessions representing different market regimes
+      </p>
     </div>
   );
 }
@@ -268,15 +387,16 @@ function DashboardTab() {
 /* ------------------------------------------------------------------ */
 /* Alerts tab                                                          */
 /* ------------------------------------------------------------------ */
-function AlertsTab() {
+function AlertsTab({ alerts, scanDate }: { alerts: WatchlistData["alerts"]; scanDate: string }) {
   return (
     <div className="max-w-3xl space-y-6">
       <div>
         <SectionHeading>Alert Feed</SectionHeading>
         <p className="text-sm leading-7 text-muted">
           The system generates severity-prioritized alerts for actionable
-          intraday events. Alerts are generated from the latest session scan
-          and sorted by severity: high (large moves, cross events), medium
+          intraday events. Alerts below are from the{" "}
+          <span className="font-mono font-medium text-foreground">{scanDate}</span>{" "}
+          session, sorted by severity: high (large moves, cross events), medium
           (ORB breakouts, extreme RSI), and low (elevated volume).
         </p>
       </div>

@@ -59,13 +59,13 @@
       {
         "symbol": "TSLA",
         "rank": 1,
-        "score": 0.8202,
+        "score": 0.8206,
         "factors": {
           "excess_return": 1.0,
           "rsi": 0.433,
           "price_vs_vwap": 1.0,
           "ma_alignment": 1.0,
-          "relative_volume": 0.086,
+          "relative_volume": 0.091,
           "cross_events": -0.0,
           "trend_quality": 1.0,
           "orb": 1.0
@@ -75,13 +75,13 @@
       {
         "symbol": "HOOD",
         "rank": 2,
-        "score": 0.7754,
+        "score": 0.7739,
         "factors": {
           "excess_return": 1.0,
           "rsi": 0.876,
           "price_vs_vwap": 1.0,
           "ma_alignment": 0.333,
-          "relative_volume": 0.223,
+          "relative_volume": 0.204,
           "cross_events": -0.0,
           "trend_quality": 1.0,
           "orb": 1.0
@@ -91,13 +91,13 @@
       {
         "symbol": "PLTR",
         "rank": 3,
-        "score": 0.5489,
+        "score": 0.547,
         "factors": {
           "excess_return": 0.471,
           "rsi": 0.602,
           "price_vs_vwap": 1.0,
           "ma_alignment": 1.0,
-          "relative_volume": 0.066,
+          "relative_volume": 0.042,
           "cross_events": -0.0,
           "trend_quality": 0.532,
           "orb": -0.0
@@ -107,13 +107,13 @@
       {
         "symbol": "AMD",
         "rank": 4,
-        "score": 0.3021,
+        "score": 0.3011,
         "factors": {
           "excess_return": 0.331,
           "rsi": -0.117,
           "price_vs_vwap": 0.697,
           "ma_alignment": 0.333,
-          "relative_volume": 0.183,
+          "relative_volume": 0.171,
           "cross_events": -0.0,
           "trend_quality": -0.188,
           "orb": 1.0
@@ -123,13 +123,13 @@
       {
         "symbol": "NVDA",
         "rank": 5,
-        "score": 0.2043,
+        "score": 0.2001,
         "factors": {
           "excess_return": 0.011,
           "rsi": 0.317,
           "price_vs_vwap": 0.518,
           "ma_alignment": 0.333,
-          "relative_volume": 0.276,
+          "relative_volume": 0.224,
           "cross_events": -0.0,
           "trend_quality": 0.136,
           "orb": -0.0
@@ -139,13 +139,13 @@
       {
         "symbol": "MU",
         "rank": 6,
-        "score": 0.141,
+        "score": 0.1442,
         "factors": {
           "excess_return": 0.429,
           "rsi": 0.055,
           "price_vs_vwap": -0.222,
           "ma_alignment": 0.333,
-          "relative_volume": -0.146,
+          "relative_volume": -0.106,
           "cross_events": -0.0,
           "trend_quality": 0.241,
           "orb": -0.0
@@ -157,13 +157,13 @@
       {
         "symbol": "MU",
         "rank": 1,
-        "score": -0.141,
+        "score": -0.1442,
         "factors": {
           "excess_return": -0.429,
           "rsi": -0.055,
           "price_vs_vwap": 0.222,
           "ma_alignment": -0.333,
-          "relative_volume": 0.146,
+          "relative_volume": 0.106,
           "cross_events": 0.0,
           "trend_quality": -0.241,
           "orb": 0.0
@@ -173,13 +173,13 @@
       {
         "symbol": "NVDA",
         "rank": 2,
-        "score": -0.2043,
+        "score": -0.2001,
         "factors": {
           "excess_return": -0.011,
           "rsi": -0.317,
           "price_vs_vwap": -0.518,
           "ma_alignment": -0.333,
-          "relative_volume": -0.276,
+          "relative_volume": -0.224,
           "cross_events": 0.0,
           "trend_quality": -0.136,
           "orb": 0.0
@@ -189,13 +189,13 @@
       {
         "symbol": "AMD",
         "rank": 3,
-        "score": -0.3021,
+        "score": -0.3011,
         "factors": {
           "excess_return": -0.331,
           "rsi": 0.117,
           "price_vs_vwap": -0.697,
           "ma_alignment": -0.333,
-          "relative_volume": -0.183,
+          "relative_volume": -0.171,
           "cross_events": 0.0,
           "trend_quality": 0.188,
           "orb": -1.0
@@ -207,13 +207,13 @@
       {
         "symbol": "TSLA",
         "rank": 1,
-        "score": 0.8202,
+        "score": 0.8206,
         "factors": {
           "excess_return": 1.0,
           "rsi": 0.433,
           "price_vs_vwap": 1.0,
           "ma_alignment": 1.0,
-          "relative_volume": 0.086,
+          "relative_volume": 0.091,
           "cross_events": -0.0,
           "trend_quality": 1.0,
           "orb": 1.0
@@ -223,13 +223,13 @@
       {
         "symbol": "HOOD",
         "rank": 2,
-        "score": 0.7754,
+        "score": 0.7739,
         "factors": {
           "excess_return": 1.0,
           "rsi": 0.876,
           "price_vs_vwap": 1.0,
           "ma_alignment": 0.333,
-          "relative_volume": 0.223,
+          "relative_volume": 0.204,
           "cross_events": -0.0,
           "trend_quality": 1.0,
           "orb": 1.0
@@ -239,13 +239,13 @@
       {
         "symbol": "PLTR",
         "rank": 3,
-        "score": 0.5489,
+        "score": 0.547,
         "factors": {
           "excess_return": 0.471,
           "rsi": 0.602,
           "price_vs_vwap": 1.0,
           "ma_alignment": 1.0,
-          "relative_volume": 0.066,
+          "relative_volume": 0.042,
           "cross_events": -0.0,
           "trend_quality": 0.532,
           "orb": -0.0
@@ -280,7 +280,7 @@
       "ret_15m_xs_spy": -0.004645,
       "ret_30m_xs_spy": -0.004589,
       "ret_dtd_xs_spy": -0.021009,
-      "rvol": 0.914267,
+      "rvol": 0.908717,
       "orb_high": 406.3,
       "orb_low": 400.42,
       "orb_status": "below"
@@ -310,7 +310,7 @@
       "ret_15m_xs_spy": -0.000653,
       "ret_30m_xs_spy": -0.001346,
       "ret_dtd_xs_spy": 0.000764,
-      "rvol": 0.7238,
+      "rvol": 0.776264,
       "orb_high": 184.85,
       "orb_low": 182.05,
       "orb_status": "inside"
@@ -340,7 +340,7 @@
       "ret_15m_xs_spy": -0.006057,
       "ret_30m_xs_spy": -0.004658,
       "ret_dtd_xs_spy": 0.004138,
-      "rvol": 0.93423,
+      "rvol": 0.95784,
       "orb_high": 155.34,
       "orb_low": 151.01,
       "orb_status": "inside"
@@ -370,7 +370,7 @@
       "ret_15m_xs_spy": -0.003408,
       "ret_30m_xs_spy": 0.001503,
       "ret_dtd_xs_spy": -0.00986,
-      "rvol": 1.146299,
+      "rvol": 1.105808,
       "orb_high": 413.575,
       "orb_low": 402.57,
       "orb_status": "inside"
@@ -400,7 +400,7 @@
       "ret_15m_xs_spy": -0.011881,
       "ret_30m_xs_spy": -0.012102,
       "ret_dtd_xs_spy": -0.017964,
-      "rvol": 0.776593,
+      "rvol": 0.796207,
       "orb_high": 77.73,
       "orb_low": 76.175,
       "orb_status": "below"
@@ -430,7 +430,7 @@
       "ret_15m_xs_spy": 0.00041,
       "ret_30m_xs_spy": -0.001508,
       "ret_dtd_xs_spy": -0.010409,
-      "rvol": 0.816851,
+      "rvol": 0.829218,
       "orb_high": 203.62,
       "orb_low": 198.12,
       "orb_status": "below"

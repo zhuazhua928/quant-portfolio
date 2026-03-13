@@ -61,11 +61,13 @@ def fetch_bars(
 
     logger.info("Fetching %s bars %s -> %s", symbol, start_str, end_str)
 
+    feed = os.environ.get("APCA_DATA_FEED", "iex")
     bars = client.get_bars(
         symbol,
         TimeFrame.Minute,
         start=start_str,
         end=end_str,
+        feed=feed,
     )
     df = bars.df if hasattr(bars, "df") else pd.DataFrame(bars)
 

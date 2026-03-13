@@ -28,23 +28,6 @@ export default function ResumePage() {
             </a>
             <span className="hidden sm:inline text-border">&middot;</span>
             <span>{resumeData.phone}</span>
-            <span className="hidden sm:inline text-border">&middot;</span>
-            <a
-              href={resumeData.links.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-accent transition-colors duration-200 hover:text-accent-light"
-            >
-              GitHub
-            </a>
-            <a
-              href={resumeData.links.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-accent transition-colors duration-200 hover:text-accent-light"
-            >
-              LinkedIn
-            </a>
           </div>
           <div className="mt-8">
             <a
