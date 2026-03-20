@@ -1,6 +1,8 @@
 import type { WatchlistData } from "./watchlist";
 
-import latest from "./sessions/2026-03-12.json";
+import latest from "./sessions/2026-03-20.json";
+import mar13 from "./sessions/2026-03-13.json";
+import mar12 from "./sessions/2026-03-12.json";
 import bullish from "./sessions/2026-02-25.json";
 import bearish from "./sessions/2026-02-26.json";
 import mixed from "./sessions/2026-03-05.json";
@@ -22,11 +24,27 @@ export interface Session {
 export const sessions: Session[] = [
   {
     id: "latest",
-    date: "2026-03-12",
+    date: "2026-03-20",
     label: "Latest Session",
+    regime: "mixed",
+    description: "Mixed regime — low conviction (0.10), narrow directional signals",
+    data: latest as unknown as WatchlistData,
+  },
+  {
+    id: "mar13-bearish",
+    date: "2026-03-13",
+    label: "Bearish Session",
+    regime: "bearish",
+    description: "Bearish session — QQQ below VWAP by 0.57%, SPY below opening range",
+    data: mar13 as unknown as WatchlistData,
+  },
+  {
+    id: "mar12-bearish",
+    date: "2026-03-12",
+    label: "Broad Selloff",
     regime: "bearish",
     description: "Broad selloff with QQQ -1.17% — all signals bearish",
-    data: latest as unknown as WatchlistData,
+    data: mar12 as unknown as WatchlistData,
   },
   {
     id: "bullish-trend",
