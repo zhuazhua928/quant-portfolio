@@ -11,30 +11,6 @@ export default function Footer() {
               &copy; {new Date().getFullYear()} Yuheng (Paul) Yan
             </p>
           </div>
-          <div className="flex gap-8">
-            <a
-              href="https://github.com/yourusername"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-muted transition-colors duration-200 hover:text-foreground"
-            >
-              GitHub
-            </a>
-            <a
-              href="https://linkedin.com/in/yourusername"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-muted transition-colors duration-200 hover:text-foreground"
-            >
-              LinkedIn
-            </a>
-            <a
-              href="mailto:yyan75@jh.edu"
-              className="text-sm text-muted transition-colors duration-200 hover:text-foreground"
-            >
-              Email
-            </a>
-          </div>
         </div>
       </div>
     </footer>
