@@ -47,3 +47,7 @@ __pycache__/
 
 # monitor output
 monitor_data/
+
+# research output
+research_data/
+research_artifacts/

@@ -18,6 +18,66 @@ export interface Project {
 
 export const projects: Project[] = [
   {
+    slug: "intraday-ml-research",
+    code: "P0",
+    title: "Intraday Trend Detection & Regime Monitoring (ML)",
+    subtitle:
+      "Two-stage ML pipeline for high-beta U.S. equities — HMM regime classifier + LightGBM conditional forecaster",
+    category: "Machine Learning Research",
+    period: "2026",
+    tags: [
+      "HMM",
+      "HDBSCAN",
+      "LightGBM",
+      "Walk-Forward CV",
+      "Alpaca",
+      "Python",
+    ],
+    summary:
+      "ML in Finance final project (EN.553.640): a two-stage architecture for forecasting 5–30 minute directional drift on high-beta U.S. equities. Stage 1 fits a Gaussian HMM (with HDBSCAN as a non-parametric comparison) on 5-minute windowed features to classify the current intraday regime. Stage 2 trains a per-regime LightGBM forecaster. The headline trading strategy is a regime-swing rule: enter the top-N forecast names when the bullish regime posterior crosses an entry threshold, hold through the regime block, and exit only on regime flip — collapsing turnover by 1-2 orders of magnitude vs. per-bar trading so realistic transaction costs do not eat the edge. All entry/exit thresholds and selection parameters are configurable for re-tuning. Evaluated with 6-fold walk-forward cross-validation using purged 5-day embargoes.",
+    sections: [
+      {
+        title: "Universe and Data",
+        content:
+          "25 high-beta US equities (β > 1.3 vs SPY, including TSLA, NVDA, COIN, MSTR, PLTR, HOOD, MARA, RIOT, plus mega-cap growth such as META/AMZN/GOOGL/MSFT/AAPL/NFLX) plus SPY, QQQ, and VXX as market-state covariates. Data is 1-minute OHLCV from Alpaca Markets (IEX free feed) covering 2022-01-01 through 2026-03-31, partitioned to parquet by symbol/year-month for resumable backfill. VXX serves as an Alpaca-native VIX proxy since CBOE indices are not on the Alpaca tape.",
+      },
+      {
+        title: "Stage 1 — Regime Classification",
+        content:
+          "A Gaussian Hidden Markov Model (K∈{3,4}, full covariance) is fit on standardized 5-minute window features: log returns at 1/5/15-minute horizons, realized volatility, Parkinson range volatility, VWAP deviation, rolling intraday β vs SPY (60-minute window), Amihud illiquidity, and a Lee–Ready tick-rule order-flow imbalance. HMM states are relabeled by mean forward 5-minute return so label 0 is the most bearish regime and label K-1 the most bullish. HDBSCAN is fit as a non-parametric alternative.",
+      },
+      {
+        title: "Stage 2 — Conditional Trend Forecasting",
+        content:
+          "For each regime label, a separate LightGBM regressor predicts the forward 5-minute log return; a parallel binary classifier predicts the sign for Brier and log-loss evaluation. A global LightGBM serves as a fallback when a regime has too few training rows. Baselines: a single-stage LightGBM (no regime conditioning) and a naive momentum rule with shrinkage. All models share the same feature set so head-to-head comparisons are clean.",
+      },
+      {
+        title: "Regime-Swing Trading Strategy",
+        content:
+          "Rather than betting on noisy 5-minute directional forecasts, the headline strategy uses HMM regime persistence to time longer holding periods. State machine per symbol: enter long when the bullish posterior p_K-1 ≥ entry_long_p AND the symbol is in the top-N by Stage-2 expected return at that timestamp; exit when p_K-1 falls below exit_long_p OR the bearish posterior p_0 ≥ exit_long_on_bear_p. This collapses average turnover by 1-2 orders of magnitude versus per-bar trading and lets a small forecast edge survive realistic transaction costs. All thresholds (entry_long_p, exit_long_p, exit_long_on_bear_p, top_n_per_regime, short_enabled, cost_bps_per_side, vol_target_annual) are command-line flags so the strategy can be re-tuned without code changes.",
+      },
+      {
+        title: "Walk-Forward Evaluation",
+        content:
+          "Six expanding-window walk-forward folds across the 2022–2026 sample with a 5-day embargo between train and test (López de Prado 2018) to prevent forward-return leakage. Each fold reports forecast quality (directional accuracy, Brier score, log-loss, MAE in basis points, Spearman rank IC) and trading economics (annualized return, Sharpe, max drawdown, Calmar, hit rate, average holding period in bars, total trade count). Both a per-bar minute backtest and the regime-swing backtest are computed on every fold's out-of-sample test window with 1 bp per-side transaction costs.",
+      },
+      {
+        title: "Implementation",
+        content:
+          "Python package research/ with submodules data, features, models, evaluation, pipeline, export. Uses alpaca-py, hmmlearn, hdbscan, lightgbm, and scikit-learn. The pipeline is resumable: parquet caches survive interruptions, and walk-forward folds can be replayed independently. Dashboard JSON is exported to src/data/research/ and rendered by this page; the build is fully static.",
+      },
+    ],
+    highlights: [
+      "25 high-beta US equities + SPY/QQQ/VXX, 4+ years of 1-min bars",
+      "Two-stage architecture: HMM regime → per-regime LightGBM",
+      "Regime-swing strategy: hold through regime block, not per-bar",
+      "All entry/exit thresholds configurable for re-tuning",
+      "Walk-forward CV with 5-day purged embargo",
+      "Alpaca-only data (IEX free feed, VXX as VIX proxy)",
+    ],
+    custom: true,
+  },
+  {
     slug: "intraday-regime-monitor",
     code: "P1",
     title: "Intraday Regime-Aware Watchlist Monitor",
