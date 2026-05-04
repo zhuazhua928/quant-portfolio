@@ -3931,5 +3931,95 @@
       "severity": "low",
       "message": "TSLA relative volume 1.99x (elevated)"
     }
-  ]
+  ],
+  "mlRegime": {
+    "market": {
+      "label": 2,
+      "label_name": "High-Vol Breakout",
+      "posterior": {
+        "p_0": 0.0,
+        "p_1": 0.0,
+        "p_2": 1.0,
+        "p_3": 0.0
+      },
+      "timestamp": "2026-03-31T20:00:00+00:00",
+      "n_windows": 75
+    },
+    "per_symbol": {
+      "TSLA": {
+        "label": 2,
+        "label_name": "High-Vol Breakout",
+        "posterior": {
+          "p_0": 0.0,
+          "p_1": 0.0,
+          "p_2": 1.0,
+          "p_3": 0.0
+        },
+        "timestamp": "2026-03-31T20:00:00+00:00",
+        "n_windows": 74
+      },
+      "NVDA": {
+        "label": 2,
+        "label_name": "High-Vol Breakout",
+        "posterior": {
+          "p_0": 0.0,
+          "p_1": 0.0,
+          "p_2": 1.0,
+          "p_3": 0.0
+        },
+        "timestamp": "2026-03-31T20:00:00+00:00",
+        "n_windows": 75
+      },
+      "PLTR": {
+        "label": 2,
+        "label_name": "High-Vol Breakout",
+        "posterior": {
+          "p_0": 0.0,
+          "p_1": 0.0,
+          "p_2": 1.0,
+          "p_3": 0.0
+        },
+        "timestamp": "2026-03-31T20:00:00+00:00",
+        "n_windows": 74
+      },
+      "MU": {
+        "label": 2,
+        "label_name": "High-Vol Breakout",
+        "posterior": {
+          "p_0": 0.0,
+          "p_1": 0.0,
+          "p_2": 1.0,
+          "p_3": 0.0
+        },
+        "timestamp": "2026-03-31T20:00:00+00:00",
+        "n_windows": 73
+      },
+      "HOOD": {
+        "label": 2,
+        "label_name": "High-Vol Breakout",
+        "posterior": {
+          "p_0": 0.0,
+          "p_1": 0.0,
+          "p_2": 1.0,
+          "p_3": 0.0
+        },
+        "timestamp": "2026-03-31T20:00:00+00:00",
+        "n_windows": 73
+      },
+      "AMD": {
+        "label": 2,
+        "label_name": "High-Vol Breakout",
+        "posterior": {
+          "p_0": 0.0,
+          "p_1": 0.0,
+          "p_2": 1.0,
+          "p_3": 0.0
+        },
+        "timestamp": "2026-03-31T20:00:00+00:00",
+        "n_windows": 73
+      }
+    },
+    "trained_at": "2026-04-30T07:30:45.040129+00:00",
+    "n_components": 4
+  }
 }

@@ -224,6 +224,7 @@ def export_session(target_date: date, output_path: Path | None = None) -> dict |
     regime = output["regime"]
     symbols = output["symbols"]
     ranking = output["ranking"]
+    ml_regime = output.get("ml_regime")
 
     if not symbols:
         logger.warning("No data returned for %s", target_date)
@@ -241,6 +242,7 @@ def export_session(target_date: date, output_path: Path | None = None) -> dict |
     web_data = {
         "scanDate": target_date.isoformat(),
         "regime": _serialize_regime(regime),
+        "mlRegime": ml_regime,
         "ranking": {
             "ranked": _serialize_ranked(ranking.ranked),
             "topBullish": _serialize_ranked(ranking.top_bullish),

@@ -1,9 +1,10 @@
 """Live intraday terminal monitor.
 
 Usage:
-    python -m monitor.watchlist.live              # scan every 15 min, 9:45–16:05 ET
-    python -m monitor.watchlist.live --interval 30
+    python -m monitor.watchlist.live              # scan every 5 min, 9:45–16:05 ET
+    python -m monitor.watchlist.live --interval 15
     python -m monitor.watchlist.live --now        # one scan right now (ignore market hours)
+    python -m monitor.watchlist.live --write-web  # also refresh src/data/watchlist.json each scan
 """
 
 from __future__ import annotations
@@ -28,12 +29,12 @@ _W = 55  # dashboard width
 
 
 def _hdr(now_et: datetime, next_et: datetime | None) -> str:
-    next_str = next_et.strftime("%H:%M") if next_et else "—"
+    next_str = next_et.strftime("%H:%M") if next_et else "--"
     return (
-        f"{'═' * _W}\n"
-        f"  LIVE SCAN — {now_et.strftime('%Y-%m-%d %H:%M')} ET"
+        f"{'=' * _W}\n"
+        f"  LIVE SCAN -- {now_et.strftime('%Y-%m-%d %H:%M')} ET"
         f"  |  Next: {next_str}\n"
-        f"{'═' * _W}"
+        f"{'=' * _W}"
     )
 
 
@@ -99,6 +100,36 @@ def _alerts_block(alerts: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def _ml_regime_block(ml_regime: dict | None) -> str:
+    """Format the HMM overlay for the terminal dashboard."""
+    if not ml_regime:
+        return "  HMM REGIME: not available (run research.pipeline.freeze_production)"
+    lines = ["  HMM REGIME OVERLAY (5-min cadence)"]
+    market = ml_regime.get("market") or {}
+    if market:
+        post = market.get("posterior", {})
+        bars = " ".join(
+            f"p{int(k.replace('p_', ''))}={v*100:.0f}%"
+            for k, v in sorted(post.items())
+        )
+        lines.append(
+            f"  Market : R{market.get('label')} {market.get('label_name'):<20}  {bars}"
+        )
+    per = ml_regime.get("per_symbol") or {}
+    for sym, r in per.items():
+        if r is None:
+            continue
+        post = r.get("posterior", {})
+        bars = " ".join(
+            f"p{int(k.replace('p_', ''))}={v*100:.0f}%"
+            for k, v in sorted(post.items())
+        )
+        lines.append(
+            f"  {sym:<6} : R{r.get('label')} {r.get('label_name'):<20}  {bars}"
+        )
+    return "\n".join(lines)
+
+
 def _generate_alerts(symbols: list[dict]) -> list[dict]:
     """Self-contained alert generation (mirrors export_web logic)."""
     alerts: list[dict] = []
@@ -146,34 +177,48 @@ def _generate_alerts(symbols: list[dict]) -> list[dict]:
 
 # ── core scan + print ───────────────────────────────────────────────────
 
-def run_scan(now_et: datetime, next_et: datetime | None) -> None:
+def run_scan(now_et: datetime, next_et: datetime | None, write_web: bool = False) -> None:
     """Execute one scan cycle and print the dashboard."""
     from monitor.watchlist.pipeline import scan_watchlist
 
-    print(f"\n⏳ Scanning…", flush=True)
+    print(f"\nScanning...", flush=True)
     try:
         result = scan_watchlist(target_date=now_et.date())
     except Exception as exc:
-        print(f"\n❌ Scan failed: {exc}")
+        print(f"\nScan failed: {exc}")
         return
 
-    regime = result["regime"]
-    symbols = result["symbols"]
-    ranking = result["ranking"]
+    regime = result.get("regime")
+    symbols = result.get("symbols") or []
+    ranking = result.get("ranking")
+    ml_regime = result.get("ml_regime")
+    if regime is None or ranking is None or not symbols:
+        print(f"\nNo data this cycle (likely off-hours / pre-open). Skipping render.")
+        return
     alerts = _generate_alerts(symbols)
 
-    sep = f"{'─' * _W}"
+    sep = f"{'-' * _W}"
     print()
     print(_hdr(now_et, next_et))
     print(_regime_block(regime))
+    print(sep)
+    print(_ml_regime_block(ml_regime))
     print(sep)
     print(_ranking_detail_block(ranking, symbols))
     print(sep)
     print(_top_block(ranking))
     print(sep)
     print(_alerts_block(alerts))
-    print(f"{'═' * _W}")
+    print(f"{'=' * _W}")
     print(flush=True)
+
+    if write_web:
+        from monitor.watchlist.export_web import export_session, WEB_JSON
+        try:
+            export_session(now_et.date(), output_path=WEB_JSON)
+            print(f"  -> wrote {WEB_JSON}")
+        except Exception as exc:
+            print(f"  -> web export failed: {exc}")
 
 
 # ── scheduling loop ─────────────────────────────────────────────────────
@@ -189,13 +234,16 @@ def _next_scan_time(now: datetime, interval: int) -> datetime | None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Live intraday terminal monitor")
-    parser.add_argument("--interval", type=int, default=15, help="Minutes between scans (default 15)")
+    parser.add_argument("--interval", type=int, default=5,
+                        help="Minutes between scans (default 5, matches HMM window granularity)")
     parser.add_argument("--now", action="store_true", help="Run one scan immediately and exit")
+    parser.add_argument("--write-web", action="store_true",
+                        help="After each scan, refresh src/data/watchlist.json so the dev server reflects live state")
     args = parser.parse_args()
 
     if args.now:
         now_et = datetime.now(ET)
-        run_scan(now_et, None)
+        run_scan(now_et, None, write_web=args.write_web)
         return
 
     # Loop mode
@@ -219,13 +267,13 @@ def main() -> None:
             print("\nMarket closed. Exiting.")
             break
         next_et = _next_scan_time(now_et, args.interval)
-        run_scan(now_et, next_et)
+        run_scan(now_et, next_et, write_web=args.write_web)
         if next_et is None:
             print("\nNo more scans today. Exiting.")
             break
         wait = (next_et - datetime.now(ET)).total_seconds()
         if wait > 0:
-            print(f"💤 Next scan at {next_et.strftime('%H:%M')} ET ({wait/60:.0f} min)")
+            print(f"Next scan at {next_et.strftime('%H:%M')} ET ({wait/60:.0f} min)")
             time.sleep(wait)
 
 

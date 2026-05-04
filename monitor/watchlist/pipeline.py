@@ -15,6 +15,55 @@ from .ranker import rank_watchlist, RankingResult
 logger = logging.getLogger(__name__)
 
 
+def _maybe_run_hmm_overlay(data: dict) -> dict | None:
+    """Best-effort HMM regime overlay. Returns None if the bundle is missing
+    or feature computation fails (e.g., insufficient bar history).
+
+    The overlay is cadence-aware: it only re-predicts when the latest 5-min
+    window-end timestamp advances. Calling it on every 60s scheduler tick
+    is therefore safe and cheap.
+    """
+    try:
+        from .regime_overlay import get_overlay, serialize_result
+    except Exception as exc:
+        logger.debug("HMM overlay unavailable: %s", exc)
+        return None
+
+    spy_df = data.get("SPY", pd.DataFrame())
+    qqq_df = data.get("QQQ", pd.DataFrame())
+    if spy_df.empty:
+        logger.info("HMM overlay: SPY bars missing, skipping")
+        return None
+
+    try:
+        overlay = get_overlay()
+    except FileNotFoundError as exc:
+        logger.info("HMM overlay: %s", exc)
+        return None
+
+    out: dict = {"market": None, "per_symbol": {}}
+    try:
+        if not qqq_df.empty:
+            mr = overlay.classify_market(qqq_df, spy_df)
+            out["market"] = serialize_result(mr)
+
+        for sym in WATCHLIST:
+            sdf = data.get(sym)
+            if sdf is None or sdf.empty:
+                continue
+            sr = overlay.classify_symbol(sym, sdf, spy_df)
+            out["per_symbol"][sym] = serialize_result(sr)
+
+        # attach training metadata so the dashboard can show recency
+        meta = overlay.meta
+        out["trained_at"] = meta.get("trained_at")
+        out["n_components"] = meta.get("n_components")
+        return out
+    except Exception as exc:
+        logger.warning("HMM overlay failed: %s", exc)
+        return None
+
+
 def _split_by_day(df: pd.DataFrame) -> list[pd.DataFrame]:
     """Split a multi-day DataFrame into per-day frames."""
     if df.empty:
@@ -45,7 +94,7 @@ def scan_watchlist(
 
     if not data:
         logger.warning("No data returned for any symbol")
-        return {"regime": None, "symbols": []}
+        return {"regime": None, "symbols": [], "ranking": None, "ml_regime": None}
 
     # --- market regime ---------------------------------------------------
     qqq_df = data.get("QQQ", pd.DataFrame())
@@ -84,9 +133,24 @@ def scan_watchlist(
     # --- ranking ---------------------------------------------------------
     ranking = rank_watchlist(regime, results)
 
+    # --- ML regime overlay (best-effort; runs on 5-min cadence) ----------
+    ml_regime = _maybe_run_hmm_overlay(data)
+    if ml_regime is not None:
+        market = ml_regime.get("market") or {}
+        logger.info(
+            "ML regime: market=%s (label %s)",
+            market.get("label_name"),
+            market.get("label"),
+        )
+
     symbols_done = [r["symbol"] for r in results]
     logger.info("Scan complete: %d symbols — %s", len(results), ", ".join(symbols_done))
-    return {"regime": regime, "symbols": results, "ranking": ranking}
+    return {
+        "regime": regime,
+        "symbols": results,
+        "ranking": ranking,
+        "ml_regime": ml_regime,
+    }
 
 
 def scan_to_dataframe(target_date: date | None = None) -> tuple[RegimeResult | None, pd.DataFrame]:

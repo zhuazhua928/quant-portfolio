@@ -84,9 +84,25 @@ export interface Alert {
   message: string;
 }
 
+export interface MLRegimeResult {
+  label: number;
+  label_name: string;
+  posterior: Record<string, number>; // p_0, p_1, ...
+  timestamp: string;
+  n_windows: number;
+}
+
+export interface MLRegime {
+  market: MLRegimeResult | null;
+  per_symbol: Record<string, MLRegimeResult | null>;
+  trained_at?: string | null;
+  n_components?: number | null;
+}
+
 export interface WatchlistData {
   scanDate: string;
   regime: Regime;
+  mlRegime?: MLRegime | null;
   ranking: Ranking;
   symbols: SymbolFeatures[];
   charts: Record<string, ChartPoint[]>;
