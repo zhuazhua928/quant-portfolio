@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yuheng (Paul) Yan - Resume</title>
+<style>
+  @page {
+    size: letter;
+    margin: 0.45in 0.5in 0.45in 0.5in;
+  }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Times New Roman', 'Georgia', serif;
+    font-size: 10pt;
+    line-height: 1.3;
+    color: #1a1a1a;
+    max-width: 7.5in;
+    margin: 0 auto;
+    padding: 0.45in 0.5in;
+  }
+  h1 {
+    font-size: 18pt;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 2pt;
+    letter-spacing: 1px;
+  }
+  .contact {
+    text-align: center;
+    font-size: 9.5pt;
+    margin-bottom: 6pt;
+    color: #333;
+  }
+  .contact a {
+    color: #333;
+    text-decoration: none;
+  }
+  .summary {
+    font-size: 9.5pt;
+    text-align: justify;
+    margin-bottom: 6pt;
+    padding: 4pt 0;
+    border-top: 1px solid #999;
+    border-bottom: 1px solid #999;
+    line-height: 1.35;
+  }
+  .section-title {
+    font-size: 10.5pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-bottom: 1.5px solid #333;
+    margin-top: 5pt;
+    margin-bottom: 3pt;
+    padding-bottom: 1pt;
+    letter-spacing: 0.5px;
+  }
+  .entry {
+    margin-bottom: 4pt;
+  }
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .entry-title {
+    font-weight: bold;
+    font-size: 10pt;
+  }
+  .entry-date {
+    font-style: italic;
+    font-size: 9.5pt;
+    white-space: nowrap;
+  }
+  .entry-subtitle {
+    display: flex;
+    justify-content: space-between;
+    font-style: italic;
+    font-size: 9.5pt;
+    color: #333;
+  }
+  ul {
+    padding-left: 14pt;
+    margin-top: 1pt;
+  }
+  li {
+    font-size: 9.5pt;
+    margin-bottom: 0.5pt;
+    line-height: 1.3;
+  }
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 1pt 6pt;
+    font-size: 9.5pt;
+    margin-top: 2pt;
+  }
+  .skills-label {
+    font-weight: bold;
+  }
+  .coursework {
+    font-size: 9.5pt;
+    margin-top: 1pt;
+  }
+  @media print {
+    body {
+      padding: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>YUHENG (PAUL) YAN</h1>
+<div class="contact">
+  Baltimore, MD &ensp;|&ensp; +1 (410) 805-9842 &ensp;|&ensp; yyan75@jh.edu &ensp;|&ensp; zhuazhua.space
+</div>
+
+<div class="summary">
+AI-driven quantitative researcher building end-to-end systematic trading systems that integrate machine learning, NLP, and reinforcement learning into automated investment pipelines. Experienced in deploying AI models and APIs into production workflows — from LLM-powered signal extraction and sentiment analysis to deep learning-based regime detection and adaptive strategy optimization. Proficient in rapid prototyping with AI code assistants (Cursor, Codex) and automating research-to-deployment pipelines. Domain expertise in market microstructure, time-series econometrics, and AI-augmented portfolio construction.
+</div>
+
+<div class="section-title">Education</div>
+
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">Johns Hopkins University</span>
+    <span class="entry-date">Sep 2024 – May 2026</span>
+  </div>
+  <div class="entry-subtitle">
+    <span>Master of Science in Financial Mathematics &ensp;|&ensp; GPA: 3.8 / 4.0</span>
+    <span>Baltimore, MD</span>
+  </div>
+  <div class="coursework">
+    <b>Coursework:</b> Machine Learning, Machine Learning in Finance, Deep Learning for Time Series, Stochastic Processes, Advanced Statistical Theory, Time Series Analysis, Investment Science, Advanced Equity Derivatives, Advanced Financial Theory, Mathematical Game Theory
+  </div>
+</div>
+
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">China University of Mining and Technology</span>
+    <span class="entry-date">Sep 2020 – Jun 2024</span>
+  </div>
+  <div class="entry-subtitle">
+    <span>Bachelor of Science in Applied Mathematics &ensp;|&ensp; Rank: 3 / 37</span>
+    <span>Xuzhou, China</span>
+  </div>
+</div>
+
+<div class="section-title">Research Experience</div>
+
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">AI-Driven Financial Bubble Detection with Transformer &amp; NLP Pipeline</span>
+    <span class="entry-date">2024 – 2025</span>
+  </div>
+  <div class="entry-subtitle">
+    <span>Co-First Author &ensp;|&ensp; Supervisor: Prof. Helyette Geman, Johns Hopkins University</span>
+    <span>arXiv: 2510.10878</span>
+  </div>
+  <ul>
+    <li>Built an AI-powered bubble detection system integrating NLP sentiment pipelines (LLM-based news analysis) with LPPL econometric models, automating data ingestion, feature extraction, and prediction across multiple market regimes</li>
+    <li>Designed a dual-stream Transformer architecture fusing stock-level and market-level features; achieved MSE 0.087 and Pearson correlation 0.625 in out-of-sample Bubble Index prediction</li>
+    <li>Automated systematic strategy generation from AI model outputs across multiple configurations: 34.1% mean annualized return, Sharpe 1.13; top configurations exceeded Sharpe 3</li>
+    <li>Presented at the 21st Quantitative Finance Conference 2025 (Italy); accepted at QuantMinds International 2025</li>
+  </ul>
+</div>
+
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">ML-Driven Statistical Arbitrage &amp; Automated Factor Discovery</span>
+    <span class="entry-date">Jan 2025 – Jul 2025</span>
+  </div>
+  <div class="entry-subtitle">
+    <span>Research Assistant, Carey Business School, Johns Hopkins University</span>
+    <span>Baltimore, MD</span>
+  </div>
+  <ul>
+    <li>Built automated ML pipelines for statistical arbitrage: PPCA-based factor extraction with programmatic feature selection, improving Sharpe from 0.7 to 1.6, return from 18% to 23%, and reducing max drawdown from 23% to 14%</li>
+    <li>Applied LASSO-based automated feature selection on high-frequency microstructure data, isolating statistically significant predictors under real-time constraints</li>
+    <li>Benchmarked multiple ML architectures (XGBoost, LSTM, Transformer) for earnings forecasting; built cross-validation pipelines, best MSE 0.084</li>
+  </ul>
+</div>
+
+<div class="section-title">Professional Experience</div>
+
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">SNTIMNT.AI — AI Quantitative Researcher</span>
+    <span class="entry-date">Jul 2025 – Present</span>
+  </div>
+  <div class="entry-subtitle">
+    <span>AI-Driven Systematic Trading Firm (Crypto)</span>
+    <span>Lake Mary, FL</span>
+  </div>
+  <ul>
+    <li>Integrated LLM APIs (OpenAI, Claude) into automated alpha signal pipelines — extracting structured trading signals from unstructured crypto news, social media, and on-chain data via prompt engineering and fine-tuned NLP classifiers</li>
+    <li>Built AI-powered regime detection system using deep learning models with rolling distributional diagnostics; automated signal adaptation across changing market states to improve strategy robustness</li>
+    <li>Developed automated event-driven trading workflows: AI-based catalyst identification from real-time news feeds, structured hypothesis testing, and short-horizon predictability evaluation via programmatic event studies</li>
+    <li>Applied deep reinforcement learning (PPO, SAC) to dynamic strategy optimization; achieved Sharpe 1.95 and +85.3% out-of-sample return through automated reward shaping and regime-aware robustness analysis</li>
+    <li>Deployed AI strategies to production with automated monitoring; Feb–Mar 2026 live: 11.6% alpha over BTC, Sharpe 2.16</li>
+  </ul>
+</div>
+
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">Hangzhou Heixi Asset Management — Quantitative Research Intern</span>
+    <span class="entry-date">Jun 2023 – Dec 2023</span>
+  </div>
+  <div class="entry-subtitle">
+    <span>High-Frequency AI Research</span>
+    <span>Hangzhou, China</span>
+  </div>
+  <ul>
+    <li>Constructed ML-driven predictive features from Level II order book data — order flow imbalance, volume clustering, and bid-ask dynamics — automating feature engineering pipelines</li>
+    <li>Evaluated LSTM and attention-based deep learning models on high-frequency order book sequences, benchmarking against linear and tree-based baselines</li>
+  </ul>
+</div>
+
+<div class="section-title">Technical Skills</div>
+
+<div style="font-size: 9.5pt; margin-top: 2pt;">
+  <b>Languages &amp; Tools:</b> Python, C++, SQL, R, PyTorch, scikit-learn, LangChain, OpenAI API, Anthropic API, Cursor, Codex, AWS, Docker, PostgreSQL, Linux<br/>
+  <b>Research Areas:</b> AI/ML Systems, Deep Learning, NLP, Reinforcement Learning, LLM Integration, Systematic Trading, Regime Detection, Market Microstructure, Factor Models, Time-Series Forecasting, Automated Pipeline Development
+</div>
+
+</body>
+</html>
