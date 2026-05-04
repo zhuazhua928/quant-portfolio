@@ -18,8 +18,64 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    slug: "intraday-ml-research",
+    slug: "energy-trading-dashboard",
     code: "P0",
+    title: "Henry Hub Natural Gas — Trading Dashboard",
+    subtitle:
+      "Forward-curve, calendar spreads, and storage analytics for U.S. natural gas (NYMEX NG=F + EIA fundamentals)",
+    category: "Energy / Commodities",
+    period: "2026",
+    tags: [
+      "Henry Hub",
+      "Forward Curve",
+      "Calendar Spreads",
+      "EIA",
+      "yfinance",
+      "Python",
+      "Next.js",
+    ],
+    summary:
+      "A focused trading dashboard for U.S. natural gas built around the Henry Hub benchmark. The page surfaces three things an energy quant looks at every morning: the front-month price and recent realized vol, the dated NYMEX forward curve with its key calendar spreads (M2−M1 contango score, March-April widow-maker, Nov-Mar winter strip, summer-winter differential), and the EIA weekly Lower-48 storage report against its 5-year envelope (with a same-week-of-year z-score). Data is pulled from yfinance for the NG=F front-month and dated forward contracts (NG{M}{YY}.NYM, 18 months out), and from the EIA API v2 for the daily Henry Hub spot price and the weekly working-gas storage series. Pre-built JSON pipeline; static page; one CLI command rebuilds everything.",
+    sections: [
+      {
+        title: "What this dashboard answers",
+        content:
+          "Three questions an energy desk asks before the open: (1) what is the front-month doing today and how volatile has it been? (2) what is the curve telling us about winter risk and storage expectations? (3) where is current storage relative to the 5-year envelope, and is the latest weekly print a build or a draw versus normal? Each tab targets exactly one of these.",
+      },
+      {
+        title: "Data sources",
+        content:
+          "yfinance provides NG=F (NYMEX Henry Hub front-month continuous) daily OHLCV plus the dated forward contracts NGM26.NYM, NGN26.NYM, ... using the standard NYMEX month codes (F G H J K M N Q U V X Z for Jan-Dec). The EIA API v2 provides series NG.RNGWHHD.D (daily Henry Hub spot, $/MMBtu) and NG.NW2_EPG0_SWO_R48_BCF.W (weekly Lower-48 working gas in storage, Bcf). The pipeline degrades gracefully if the EIA key is missing — the storage tab shows a configuration hint and the rest of the page renders normally.",
+      },
+      {
+        title: "Calendar-spread analytics",
+        content:
+          "The forward curve is the canonical seasonal asset in commodity markets and the dashboard surfaces the spreads that desks actually trade. M2−M1 gives the contango/backwardation label. The H-J spread (March − April) is the famous widow-maker — long this and you profit if a late-winter cold snap forces storage withdrawals at the heating-season tail. The Nov-Mar winter strip is the average of the next five winter contracts (a useful proxy for what the market is pricing for next heating season). Summer-winter differential is the mean of the next seven Apr-Oct contracts vs. those five winter contracts.",
+      },
+      {
+        title: "Storage analytics",
+        content:
+          "EIA publishes the working-gas-in-storage report each Thursday at 10:30 ET. The dashboard renders the current calendar year against the 5-year envelope (same-week-of-year min, p25, mean, p75, max, computed over the prior five complete years so the band is a true historical baseline). The same-week z-score gives a one-number read on whether storage is unusually full or low for this week of the year — z > +1 typically pressures front-month prices, z < −1 supports them.",
+      },
+      {
+        title: "Implementation",
+        content:
+          "Python package energy/ with submodules sources (yfinance + EIA), analytics (returns, spreads, storage), export, and pipeline. Run end-to-end via python -m energy.pipeline.run, which writes four JSON files to src/data/energy/ that the page imports statically. The build is fully static — no API calls at request time, the page deploys as plain HTML+JS.",
+      },
+    ],
+    highlights: [
+      "NG=F front-month + 18-month dated NYMEX forward curve from yfinance",
+      "Calendar spreads: M2−M1 contango, H-J widow-maker, winter strip, summer-winter Δ",
+      "EIA weekly storage report vs. 5-year envelope with same-week z-score",
+      "Pre-built JSON pipeline — site is fully static, no live API calls at request time",
+      "Graceful degradation when EIA key is missing",
+      "Built for an energy quant interview: every panel maps to a desk talking point",
+    ],
+    custom: true,
+  },
+  {
+    slug: "intraday-ml-research",
+    code: "P1",
     title: "Intraday Trend Detection & Regime Monitoring (ML)",
     subtitle:
       "Two-stage ML pipeline for high-beta U.S. equities — HMM regime classifier + LightGBM conditional forecaster",
@@ -79,7 +135,7 @@ export const projects: Project[] = [
   },
   {
     slug: "intraday-regime-monitor",
-    code: "P1",
+    code: "P2",
     title: "Intraday Regime-Aware Watchlist Monitor",
     subtitle:
       "Real-time decision-support system for intraday trading on a focused high-beta watchlist",
@@ -127,7 +183,7 @@ export const projects: Project[] = [
   },
   {
     slug: "exotic-options-research",
-    code: "P2",
+    code: "P3",
     title: "Exotic Options & Structured Derivatives Research",
     subtitle:
       "Monte Carlo pricing and scenario analysis for multi-asset structured products",
@@ -173,7 +229,7 @@ export const projects: Project[] = [
   },
   {
     slug: "crypto-market-intelligence",
-    code: "P3",
+    code: "P4",
     title: "Crypto Market Intelligence Research",
     subtitle:
       "Alternative data, NLP, and event-driven analysis for digital asset markets",
@@ -213,7 +269,7 @@ export const projects: Project[] = [
   },
   {
     slug: "financial-bubble-detection",
-    code: "P4",
+    code: "P5",
     title: "Financial Bubble Detection with HLPPL",
     subtitle:
       "Identifying and quantifying U.S. equity bubbles using the Hyped Log-Periodic Power Law model",
