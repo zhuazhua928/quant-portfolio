@@ -6,35 +6,35 @@
       "year": 2026,
       "month": 6,
       "expiry_label": "2026-06",
-      "close": 2.828
+      "close": 2.827
     },
     {
       "symbol": "NGN26.NYM",
       "year": 2026,
       "month": 7,
       "expiry_label": "2026-07",
-      "close": 3.12
+      "close": 3.121
     },
     {
       "symbol": "NGQ26.NYM",
       "year": 2026,
       "month": 8,
       "expiry_label": "2026-08",
-      "close": 3.186
+      "close": 3.189
     },
     {
       "symbol": "NGU26.NYM",
       "year": 2026,
       "month": 9,
       "expiry_label": "2026-09",
-      "close": 3.174
+      "close": 3.176
     },
     {
       "symbol": "NGV26.NYM",
       "year": 2026,
       "month": 10,
       "expiry_label": "2026-10",
-      "close": 3.245
+      "close": 3.247
     },
     {
       "symbol": "NGX26.NYM",
@@ -62,7 +62,7 @@
       "year": 2027,
       "month": 2,
       "expiry_label": "2027-02",
-      "close": 4.241
+      "close": 4.243
     },
     {
       "symbol": "NGH27.NYM",
@@ -129,9 +129,9 @@
     }
   ],
   "contango": {
-    "m1": 2.828,
-    "m2": 3.12,
-    "spread": 0.292,
+    "m1": 2.827,
+    "m2": 3.121,
+    "spread": 0.294,
     "label": "contango"
   },
   "widow_maker": {
@@ -146,11 +146,11 @@
       "2027-02",
       "2027-03"
     ],
-    "average": 4.018
+    "average": 4.0184
   },
   "summer_winter": {
-    "summer_avg": 3.0853,
-    "winter_avg": 4.018,
-    "diff": 0.9327
+    "summer_avg": 3.0863,
+    "winter_avg": 4.0184,
+    "diff": 0.9321
   }
 }
