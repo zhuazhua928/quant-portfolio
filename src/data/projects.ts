@@ -18,8 +18,188 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    slug: "intraday-regime-monitor",
+    slug: "ercot-da-rt-spread",
+    code: "P6",
+    title: "ERCOT Day-Ahead vs Real-Time Spread — Replication & Backtest",
+    subtitle:
+      "Methodological replication of Maciejowska, Nitka & Weron (2019) on ERCOT North Hub: ARX + Probit forecasts of the DA/RT spread sign, walk-forward backtest with $0.50/MWh switching cost",
+    category: "Energy / Replication",
+    period: "2026",
+    tags: [
+      "Replication",
+      "ERCOT",
+      "ARX",
+      "Probit",
+      "Walk-Forward",
+      "Backtest",
+      "EIA-930",
+      "gridstatus",
+      "Python",
+    ],
+    summary:
+      "End-to-end replication of Maciejowska, Nitka & Weron (Energies 2019) on a US analog: small generator chooses each day whether to commit to ERCOT day-ahead (DAM) or real-time (RTM) Settlement Point Prices at HB_NORTH. The decision rule is built on three forecast specifications — ARX modelling DA and RT prices separately (paper's best on Polish data), ARX modelling the spread directly, and a Probit on Pr(spread > 0). Each is wrapped in a walk-forward engine over 2022-2025 with calibration windows of 30, 91, 182, and 365 days, and the strategy is settled with a $0.50/MWh per-switch trading cost plus a sensitivity sweep. The page is built around the backtest pipeline itself: a six-stage flow (ingest → panel → features → models → walk-forward → evaluate → export) is the default landing tab so a reviewer sees the data path before the equity curve. Outputs are pre-computed JSON; the page is fully static.",
+    sections: [
+      {
+        title: "What this replicates",
+        content:
+          "The paper's central question is whether a small RES generator gains by forecasting the day-ahead vs intraday/balancing spread instead of always committing to one market. We replicate the methodology — ARX with deterministic dummies, lag set L = {2,7}, exogenous demand and wind covariates, plus Probit at thresholds μ ∈ {0.30, 0.40, 0.50} — but on ERCOT HB_NORTH because Polish balancing-market data is not freely reproducible. Markets and currency differ, so the headline numbers don't compare directly to the paper's Tables 3-4; the model rankings and threshold behaviour are what's being benchmarked.",
+      },
+      {
+        title: "Backtest pipeline",
+        content:
+          "The page's default tab walks through the six stages. Ingest (gridstatus + EIA-930) caches DAM SPP, RTM SPP, demand forecast, and wind/solar net generation per year as parquet. Panel joins all series at hourly resolution and aggregates to daily means with weekday/holiday dummies. Features build the ARX/Probit design matrix Z = [const, Mon, Sat, Sun, Holiday, X..., spread_lag_2, spread_lag_7, p0_lag1]. Models fit ARX_levels, ARX_spread, and Probit closed-form / via Newton-Raphson. Walk-forward refits each model daily on a trailing T-day window. Evaluate computes paper Eqs (10)-(12) for classification (p, q₀, q₁) plus financial stats (total profit, Sharpe, max DD, Calmar, 5% VaR). Export writes seven JSON artefacts.",
+      },
+      {
+        title: "Backtest assumptions",
+        content:
+          "Position sizing is 1 MWh per hour committed to whichever market the strategy picks for that hour, summed daily into a $-denominated PnL. Trading cost is $0.50/MWh per market-switch (charged when Ŷ = 1 → commit to RT), modelling RT settlement uncertainty + execution slippage in lieu of a quoted bid-ask. The Sensitivity tab also reports the strategy at $0.00, $0.25, $1.00, and $2.00/MWh so the break-even cost is visible. Sharpe is dollar-Sharpe annualized as μ/σ × √365 (electricity trades 24×365). Max drawdown is reported as a positive $-figure on the cumulative equity. 5% VaR is the 5th percentile of the daily PnL distribution.",
+      },
+      {
+        title: "Data and the wind/solar caveat",
+        content:
+          "DAM and RTM SPPs come from ERCOT Public Reports NP4-180-ER and NP6-785-ER via gridstatus. Demand forecast (DF) is the EIA-930 day-ahead forecast — a true ex-ante series. Wind and solar use EIA-930 net generation (NG.WND, NG.SUN); EIA does not publish a day-ahead wind/solar forecast for arbitrary historical periods, so the pipeline substitutes a lag-1 persistence forecast (yesterday's realized) as the in-advance proxy. This caveat is documented in the metadata payload and on the Methodology tab — the demand-forecast variable in the regression is a true forecast; the wind and solar variables are persistence-derived.",
+      },
+      {
+        title: "Why ERCOT, why North Hub",
+        content:
+          "ERCOT is the closest US analog to the paper's German market: high renewable share (~28% wind+solar in 2024), volatile real-time prices, and a clean DA/RT settlement decision available to any market participant. HB_NORTH is the largest trading hub by liquidity. The 2022-2025 window captures Winter Storm Elliott (Dec 2022), the 2022-2023 European-spillover natural gas spike, and the high-solar 2024-2025 period. Calibration windows {30, 91, 182, 365} match the paper Sec 4 grid.",
+      },
+      {
+        title: "Implementation",
+        content:
+          "Python package power_spread/ with submodules sources, ingest, features, models (arx, probit, naive), backtest (walk_forward, strategy, pnl), evaluation (classification, financial), pipeline, and export. Walk-forward is sequential by day and refits each config once per OOS day — ARX is closed-form OLS via numpy lstsq; Probit uses statsmodels Newton-Raphson. Pre-built JSON pipeline, fully-static Next.js page, Recharts visualizations.",
+      },
+    ],
+    highlights: [
+      "Three paper-faithful forecast specs: ARX_levels, ARX_spread, Probit",
+      "Walk-forward refit per day across T ∈ {30, 91, 182, 365} calibration windows",
+      "$0.50/MWh switching cost + cost-sensitivity sweep at {0, 0.25, 1, 2}",
+      "Probit threshold sweep μ ∈ {0.30, 0.40, 0.50} per paper Sec 3.2",
+      "Classification (p, q₀, q₁) + financial (Sharpe, max DD, Calmar, VaR) reported side-by-side",
+      "Backtest pipeline is the default landing tab — ingest → models → walk-forward laid out as a six-stage flow",
+      "Pre-built JSON pipeline; static page; one CLI command rebuilds everything",
+    ],
+    custom: true,
+  },
+  {
+    slug: "energy-trading-dashboard",
+    code: "P0",
+    title: "Henry Hub Natural Gas — Trading Dashboard",
+    subtitle:
+      "Forward-curve, calendar spreads, and storage analytics for U.S. natural gas (NYMEX NG=F + EIA fundamentals)",
+    category: "Energy / Commodities",
+    period: "2026",
+    tags: [
+      "Henry Hub",
+      "Forward Curve",
+      "Calendar Spreads",
+      "EIA",
+      "yfinance",
+      "Python",
+      "Next.js",
+    ],
+    summary:
+      "A focused trading dashboard for U.S. natural gas built around the Henry Hub benchmark. The page surfaces three things an energy quant looks at every morning: the front-month price and recent realized vol, the dated NYMEX forward curve with its key calendar spreads (M2−M1 contango score, March-April widow-maker, Nov-Mar winter strip, summer-winter differential), and the EIA weekly Lower-48 storage report against its 5-year envelope (with a same-week-of-year z-score). Data is pulled from yfinance for the NG=F front-month and dated forward contracts (NG{M}{YY}.NYM, 18 months out), and from the EIA API v2 for the daily Henry Hub spot price and the weekly working-gas storage series. Pre-built JSON pipeline; static page; one CLI command rebuilds everything.",
+    sections: [
+      {
+        title: "What this dashboard answers",
+        content:
+          "Three questions an energy desk asks before the open: (1) what is the front-month doing today and how volatile has it been? (2) what is the curve telling us about winter risk and storage expectations? (3) where is current storage relative to the 5-year envelope, and is the latest weekly print a build or a draw versus normal? Each tab targets exactly one of these.",
+      },
+      {
+        title: "Data sources",
+        content:
+          "yfinance provides NG=F (NYMEX Henry Hub front-month continuous) daily OHLCV plus the dated forward contracts NGM26.NYM, NGN26.NYM, ... using the standard NYMEX month codes (F G H J K M N Q U V X Z for Jan-Dec). The EIA API v2 provides series NG.RNGWHHD.D (daily Henry Hub spot, $/MMBtu) and NG.NW2_EPG0_SWO_R48_BCF.W (weekly Lower-48 working gas in storage, Bcf). The pipeline degrades gracefully if the EIA key is missing — the storage tab shows a configuration hint and the rest of the page renders normally.",
+      },
+      {
+        title: "Calendar-spread analytics",
+        content:
+          "The forward curve is the canonical seasonal asset in commodity markets and the dashboard surfaces the spreads that desks actually trade. M2−M1 gives the contango/backwardation label. The H-J spread (March − April) is the famous widow-maker — long this and you profit if a late-winter cold snap forces storage withdrawals at the heating-season tail. The Nov-Mar winter strip is the average of the next five winter contracts (a useful proxy for what the market is pricing for next heating season). Summer-winter differential is the mean of the next seven Apr-Oct contracts vs. those five winter contracts.",
+      },
+      {
+        title: "Storage analytics",
+        content:
+          "EIA publishes the working-gas-in-storage report each Thursday at 10:30 ET. The dashboard renders the current calendar year against the 5-year envelope (same-week-of-year min, p25, mean, p75, max, computed over the prior five complete years so the band is a true historical baseline). The same-week z-score gives a one-number read on whether storage is unusually full or low for this week of the year — z > +1 typically pressures front-month prices, z < −1 supports them.",
+      },
+      {
+        title: "Implementation",
+        content:
+          "Python package energy/ with submodules sources (yfinance + EIA), analytics (returns, spreads, storage), export, and pipeline. Run end-to-end via python -m energy.pipeline.run, which writes four JSON files to src/data/energy/ that the page imports statically. The build is fully static — no API calls at request time, the page deploys as plain HTML+JS.",
+      },
+    ],
+    highlights: [
+      "NG=F front-month + 18-month dated NYMEX forward curve from yfinance",
+      "Calendar spreads: M2−M1 contango, H-J widow-maker, winter strip, summer-winter Δ",
+      "EIA weekly storage report vs. 5-year envelope with same-week z-score",
+      "Pre-built JSON pipeline — site is fully static, no live API calls at request time",
+      "Graceful degradation when EIA key is missing",
+      "Built for an energy quant interview: every panel maps to a desk talking point",
+    ],
+    custom: true,
+  },
+  {
+    slug: "intraday-ml-research",
     code: "P1",
+    title: "Intraday Trend Detection & Regime Monitoring (ML)",
+    subtitle:
+      "Two-stage ML pipeline for high-beta U.S. equities — HMM regime classifier + LightGBM conditional forecaster",
+    category: "Machine Learning Research",
+    period: "2026",
+    tags: [
+      "HMM",
+      "HDBSCAN",
+      "LightGBM",
+      "Walk-Forward CV",
+      "Alpaca",
+      "Python",
+    ],
+    summary:
+      "ML in Finance final project (EN.553.640): a two-stage architecture for forecasting 5–30 minute directional drift on high-beta U.S. equities. Stage 1 fits a Gaussian HMM (with HDBSCAN as a non-parametric comparison) on 5-minute windowed features to classify the current intraday regime. Stage 2 trains a per-regime LightGBM forecaster. The headline trading strategy is a regime-swing rule: enter the top-N forecast names when the bullish regime posterior crosses an entry threshold, hold through the regime block, and exit only on regime flip — collapsing turnover by 1-2 orders of magnitude vs. per-bar trading so realistic transaction costs do not eat the edge. All entry/exit thresholds and selection parameters are configurable for re-tuning. Evaluated with 6-fold walk-forward cross-validation using purged 5-day embargoes.",
+    sections: [
+      {
+        title: "Universe and Data",
+        content:
+          "25 high-beta US equities (β > 1.3 vs SPY, including TSLA, NVDA, COIN, MSTR, PLTR, HOOD, MARA, RIOT, plus mega-cap growth such as META/AMZN/GOOGL/MSFT/AAPL/NFLX) plus SPY, QQQ, and VXX as market-state covariates. Data is 1-minute OHLCV from Alpaca Markets (IEX free feed) covering 2022-01-01 through 2026-03-31, partitioned to parquet by symbol/year-month for resumable backfill. VXX serves as an Alpaca-native VIX proxy since CBOE indices are not on the Alpaca tape.",
+      },
+      {
+        title: "Stage 1 — Regime Classification",
+        content:
+          "A Gaussian Hidden Markov Model (K∈{3,4}, full covariance) is fit on standardized 5-minute window features: log returns at 1/5/15-minute horizons, realized volatility, Parkinson range volatility, VWAP deviation, rolling intraday β vs SPY (60-minute window), Amihud illiquidity, and a Lee–Ready tick-rule order-flow imbalance. HMM states are relabeled by mean forward 5-minute return so label 0 is the most bearish regime and label K-1 the most bullish. HDBSCAN is fit as a non-parametric alternative.",
+      },
+      {
+        title: "Stage 2 — Conditional Trend Forecasting",
+        content:
+          "For each regime label, a separate LightGBM regressor predicts the forward 5-minute log return; a parallel binary classifier predicts the sign for Brier and log-loss evaluation. A global LightGBM serves as a fallback when a regime has too few training rows. Baselines: a single-stage LightGBM (no regime conditioning) and a naive momentum rule with shrinkage. All models share the same feature set so head-to-head comparisons are clean.",
+      },
+      {
+        title: "Regime-Swing Trading Strategy",
+        content:
+          "Rather than betting on noisy 5-minute directional forecasts, the headline strategy uses HMM regime persistence to time longer holding periods. State machine per symbol: enter long when the bullish posterior p_K-1 ≥ entry_long_p AND the symbol is in the top-N by Stage-2 expected return at that timestamp; exit when p_K-1 falls below exit_long_p OR the bearish posterior p_0 ≥ exit_long_on_bear_p. This collapses average turnover by 1-2 orders of magnitude versus per-bar trading and lets a small forecast edge survive realistic transaction costs. All thresholds (entry_long_p, exit_long_p, exit_long_on_bear_p, top_n_per_regime, short_enabled, cost_bps_per_side, vol_target_annual) are command-line flags so the strategy can be re-tuned without code changes.",
+      },
+      {
+        title: "Walk-Forward Evaluation",
+        content:
+          "Six expanding-window walk-forward folds across the 2022–2026 sample with a 5-day embargo between train and test (López de Prado 2018) to prevent forward-return leakage. Each fold reports forecast quality (directional accuracy, Brier score, log-loss, MAE in basis points, Spearman rank IC) and trading economics (annualized return, Sharpe, max drawdown, Calmar, hit rate, average holding period in bars, total trade count). Both a per-bar minute backtest and the regime-swing backtest are computed on every fold's out-of-sample test window with 1 bp per-side transaction costs.",
+      },
+      {
+        title: "Implementation",
+        content:
+          "Python package research/ with submodules data, features, models, evaluation, pipeline, export. Uses alpaca-py, hmmlearn, hdbscan, lightgbm, and scikit-learn. The pipeline is resumable: parquet caches survive interruptions, and walk-forward folds can be replayed independently. Dashboard JSON is exported to src/data/research/ and rendered by this page; the build is fully static.",
+      },
+    ],
+    highlights: [
+      "25 high-beta US equities + SPY/QQQ/VXX, 4+ years of 1-min bars",
+      "Two-stage architecture: HMM regime → per-regime LightGBM",
+      "Regime-swing strategy: hold through regime block, not per-bar",
+      "All entry/exit thresholds configurable for re-tuning",
+      "Walk-forward CV with 5-day purged embargo",
+      "Alpaca-only data (IEX free feed, VXX as VIX proxy)",
+    ],
+    custom: true,
+  },
+  {
+    slug: "intraday-regime-monitor",
+    code: "P2",
     title: "Intraday Regime-Aware Watchlist Monitor",
     subtitle:
       "Real-time decision-support system for intraday trading on a focused high-beta watchlist",
@@ -67,7 +247,7 @@ export const projects: Project[] = [
   },
   {
     slug: "exotic-options-research",
-    code: "P2",
+    code: "P3",
     title: "Exotic Options & Structured Derivatives Research",
     subtitle:
       "Monte Carlo pricing and scenario analysis for multi-asset structured products",
@@ -113,7 +293,7 @@ export const projects: Project[] = [
   },
   {
     slug: "crypto-market-intelligence",
-    code: "P3",
+    code: "P4",
     title: "Crypto Market Intelligence Research",
     subtitle:
       "Alternative data, NLP, and event-driven analysis for digital asset markets",
@@ -153,7 +333,7 @@ export const projects: Project[] = [
   },
   {
     slug: "financial-bubble-detection",
-    code: "P4",
+    code: "P5",
     title: "Financial Bubble Detection with HLPPL",
     subtitle:
       "Identifying and quantifying U.S. equity bubbles using the Hyped Log-Periodic Power Law model",

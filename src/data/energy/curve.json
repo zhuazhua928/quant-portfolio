@@ -1,0 +1,156 @@
+{
+  "asof": "2026-05-03",
+  "contracts": [
+    {
+      "symbol": "NGM26.NYM",
+      "year": 2026,
+      "month": 6,
+      "expiry_label": "2026-06",
+      "close": 2.827
+    },
+    {
+      "symbol": "NGN26.NYM",
+      "year": 2026,
+      "month": 7,
+      "expiry_label": "2026-07",
+      "close": 3.121
+    },
+    {
+      "symbol": "NGQ26.NYM",
+      "year": 2026,
+      "month": 8,
+      "expiry_label": "2026-08",
+      "close": 3.189
+    },
+    {
+      "symbol": "NGU26.NYM",
+      "year": 2026,
+      "month": 9,
+      "expiry_label": "2026-09",
+      "close": 3.176
+    },
+    {
+      "symbol": "NGV26.NYM",
+      "year": 2026,
+      "month": 10,
+      "expiry_label": "2026-10",
+      "close": 3.247
+    },
+    {
+      "symbol": "NGX26.NYM",
+      "year": 2026,
+      "month": 11,
+      "expiry_label": "2026-11",
+      "close": 3.557
+    },
+    {
+      "symbol": "NGZ26.NYM",
+      "year": 2026,
+      "month": 12,
+      "expiry_label": "2026-12",
+      "close": 4.276
+    },
+    {
+      "symbol": "NGF27.NYM",
+      "year": 2027,
+      "month": 1,
+      "expiry_label": "2027-01",
+      "close": 4.719
+    },
+    {
+      "symbol": "NGG27.NYM",
+      "year": 2027,
+      "month": 2,
+      "expiry_label": "2027-02",
+      "close": 4.243
+    },
+    {
+      "symbol": "NGH27.NYM",
+      "year": 2027,
+      "month": 3,
+      "expiry_label": "2027-03",
+      "close": 3.297
+    },
+    {
+      "symbol": "NGJ27.NYM",
+      "year": 2027,
+      "month": 4,
+      "expiry_label": "2027-04",
+      "close": 3.032
+    },
+    {
+      "symbol": "NGK27.NYM",
+      "year": 2027,
+      "month": 5,
+      "expiry_label": "2027-05",
+      "close": 3.012
+    },
+    {
+      "symbol": "NGM27.NYM",
+      "year": 2027,
+      "month": 6,
+      "expiry_label": "2027-06",
+      "close": 3.127
+    },
+    {
+      "symbol": "NGN27.NYM",
+      "year": 2027,
+      "month": 7,
+      "expiry_label": "2027-07",
+      "close": 3.344
+    },
+    {
+      "symbol": "NGQ27.NYM",
+      "year": 2027,
+      "month": 8,
+      "expiry_label": "2027-08",
+      "close": 3.39
+    },
+    {
+      "symbol": "NGU27.NYM",
+      "year": 2027,
+      "month": 9,
+      "expiry_label": "2027-09",
+      "close": 3.382
+    },
+    {
+      "symbol": "NGV27.NYM",
+      "year": 2027,
+      "month": 10,
+      "expiry_label": "2027-10",
+      "close": 3.459
+    },
+    {
+      "symbol": "NGX27.NYM",
+      "year": 2027,
+      "month": 11,
+      "expiry_label": "2027-11",
+      "close": 3.723
+    }
+  ],
+  "contango": {
+    "m1": 2.827,
+    "m2": 3.121,
+    "spread": 0.294,
+    "label": "contango"
+  },
+  "widow_maker": {
+    "year": 2027,
+    "spread": 0.265
+  },
+  "winter_strip": {
+    "contracts": [
+      "2026-11",
+      "2026-12",
+      "2027-01",
+      "2027-02",
+      "2027-03"
+    ],
+    "average": 4.0184
+  },
+  "summer_winter": {
+    "summer_avg": 3.0863,
+    "winter_avg": 4.0184,
+    "diff": 0.9321
+  }
+}

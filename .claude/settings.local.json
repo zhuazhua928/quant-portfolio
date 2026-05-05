@@ -1,7 +1,31 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(npm run:*)",
+      "Bash(xargs cat:*)",
+      "Bash(python -m monitor 2>&1 | head -50)",
+      "Bash(python -c \"import alpaca_trade_api; print\\(alpaca_trade_api.__version__\\)\" 2>&1)",
+      "Bash(python -m monitor.test_alpaca_bars 2>&1)",
+      "Bash(test -f .env && head -5 .env 2>/dev/null || echo \"no .env file\"; echo \"$APCA_API_KEY_ID\" | head -c 10)",
+      "Bash(export APCA_API_KEY_ID=\"PK7GC56QPLO4CQCQ7SHSRAMRUE\" && export APCA_API_SECRET_KEY=\"3Sdyx3jHcgVwHvsZJ3aWTwDArnQ14yr1iQ7BRELJarMm\" && python -m monitor.test_alpaca_bars 2>&1)",
+      "Bash(pip show:*)",
+      "Bash(pip install:*)",
+      "Bash(export APCA_API_KEY_ID=\"PK7GC56QPLO4CQCQ7SHSRAMRUE\" && export APCA_API_SECRET_KEY=\"3Sdyx3jHcgVwHvsZJ3aWTwDArnQ14yr1iQ7BRELJarMm\" && python -m monitor.watchlist.test_scan 2>&1)",
+      "Bash(ls -t monitor_data/watchlist/*.json | head -1)",
+      "Bash(sleep 3 && curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/watchlist)",
+      "WebFetch(domain:localhost)",
+      "Bash(gh api:*)",
+      "Bash(ls -la /c/Users/zhuazhua/quant-portfolio/public/ 2>/dev/null; find /c/Users/zhuazhua/quant-portfolio -name \"*.pdf\" -o -name \"*exotic*\" -o -name \"*monte*\" -o -name \"*option*\" 2>/dev/null | head -20)",
+      "Bash(sleep 4 && curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/ && echo \"\" && curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/projects && echo \"\" && curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/projects/intraday-regime-monitor && echo \"\" && curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/projects/exotic-options-research && echo \"\" && curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/projects/crypto-market-intelligence && echo \"\" && curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/projects/financial-bubble-detection)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} -> %{redirect_url}\" http://localhost:3000/watchlist && echo \"\" && curl -s -o /dev/null -w \"%{http_code} -> %{redirect_url}\" http://localhost:3000/performance)",
+      "Bash(ls -la \"C:\\\\Users\\\\zhuazhua\\\\quant-portfolio\\\\monitor\\\\watchlist\\\\\" 2>&1 || find /c/Users/zhuazhua/quant-portfolio/monitor/watchlist -type f -name \"*.py\" 2>/dev/null)",
+      "Bash(python -m monitor.watchlist.rt.run_replay --bars 30 --update-every 5 --seed 42 2>&1 | head -120)",
+      "Bash(python -m monitor.watchlist.rt.run_replay --bars 30 --update-every 5 --seed 42 2>&1 | head -100)",
+      "Bash(python -m monitor.watchlist.rt.run_replay --bars 30 --update-every 5 --seed 42 2>&1 | tail -30)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

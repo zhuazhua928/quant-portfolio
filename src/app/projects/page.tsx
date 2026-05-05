@@ -18,8 +18,9 @@ export default function ProjectsPage() {
             Research & Development
           </h1>
           <p className="mt-4 max-w-2xl text-base text-muted">
-            Four projects spanning systematic trading, exotic derivatives
-            research, crypto market intelligence, and behavioral finance.
+            Six projects spanning energy commodities, ML-based intraday
+            forecasting, systematic trading, exotic derivatives research,
+            crypto market intelligence, and behavioral finance.
           </p>
         </div>
       </section>

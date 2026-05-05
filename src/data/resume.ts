@@ -4,10 +4,6 @@ export const resumeData = {
   email: "yyan75@jh.edu",
   phone: "+1 (410) 805-9842",
   location: "Baltimore, MD",
-  links: {
-    github: "https://github.com/yourusername",
-    linkedin: "https://linkedin.com/in/yourusername",
-  },
   education: [
     {
       degree: "MSE in Financial Mathematics",

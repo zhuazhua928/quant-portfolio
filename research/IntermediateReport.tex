@@ -1,0 +1,263 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{bm}
+\usepackage{url}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\title{Intraday Trend Detection and Regime Monitoring for High-Beta U.S.\ Equities:\\
+A Machine Learning Approach\\
+\large EN.553.640(01\&02) Machine Learning in Finance --- Intermediate Report}
+\author{Yuheng Yan}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+High-beta U.S.\ equities --- names with capital asset pricing model (CAPM) beta consistently above 1.3 against the S\&P 500, such as TSLA, NVDA, COIN, MSTR, and PLTR --- amplify aggregate market moves and dominate realized intraday variance in growth-tilted portfolios.  Their intraday dynamics are violent and non-stationary: realized volatility swings by orders of magnitude across the trading day, and the cross-asset comovement that the unconditional beta is supposed to capture is itself time-varying, regime-dependent, and prone to breakdown around scheduled macro releases, earnings drift, and idiosyncratic liquidity shocks \cite{engle2006, engle2016}.  The standard end-of-day CAPM beta is therefore a poor real-time risk descriptor for these names; using it to size positions or to gate execution algorithms during the session leaves outsized P\&L error on the table.  The central question motivating this project is whether a machine learning system can detect, in near real time, which of a small set of intraday \emph{regimes} a given high-beta name is currently in --- e.g., trending with the broad market, mean-reverting, or in an idiosyncratic high-vol breakout --- and forecast the short-horizon (5--30 minute) directional drift conditional on that regime.
+
+Three strands of literature inform this question.  First, the \emph{stylized facts} literature on high-frequency returns documents heavy tails, volatility clustering, slow decay of return autocorrelation, asymmetric leverage effects, and intraday seasonality in volume and volatility \cite{cont2001}.  These stylized facts are the implicit data-generating process any intraday model must accommodate.  Engle and Gallo \cite{engle2006} extend this view to a multiple-indicators model of intraday volatility that pools information across realized variance, range-based estimators, and absolute returns, finding that no single estimator dominates and that combining them improves the conditional volatility forecast.  Their work motivates the use of multiple volatility proxies (Parkinson range, realized variance, absolute log return) as inputs to any regime classifier rather than a single estimator.
+
+Second, the \emph{regime-switching} literature in econometrics and finance treats the data-generating process as a finite mixture of latent states whose transition is governed by a Markov chain.  Hamilton's seminal contribution \cite{hamilton1989} formalized this idea for a Markov-switching autoregression and derived the filtering and smoothing recursions that allow latent regime probabilities to be inferred recursively from the observed time series alone.  The framework has since been extended to multivariate volatility \cite{billio2010}, to factor models \cite{ang2002}, and to high-frequency settings.  Hidden Markov models (HMMs) and their variants remain the canonical tool whenever regimes are unobserved, persistent, and Markovian to first order; the empirical observation that intraday equity returns exhibit precisely these properties \cite{cartea2015} is the basis for the regime-classification module of the present project.
+
+Third, the \emph{ML-for-financial-forecasting} literature has expanded rapidly since the mid-2010s.  Surveys \cite{sezer2020} catalogue applications of LSTM, convolutional, and attention-based architectures to minute-bar and tick-bar prediction, generally finding modest but statistically significant directional edges that are nonetheless sensitive to transaction costs, sample period, and out-of-sample protocol.  Two threads from this literature directly relate to the project.  Lim, Arik, Loeff, and Pfister \cite{lim2021} introduced the Temporal Fusion Transformer (TFT), an interpretable attention-based architecture for multi-horizon forecasting that combines variable-selection networks, gated residual blocks, sequence-to-sequence LSTMs, and self-attention; the TFT is currently the strongest reported architecture on long-horizon time-series benchmarks and is a natural Stage-2 candidate for any ML pipeline that wants to exploit static covariates and known future inputs (e.g., macro release flags) jointly with past observed history.  Krauss, Do, and Huck \cite{krauss2017} compare gradient-boosted trees, deep neural networks, random forests, and ensembles thereof on a daily cross-sectional ranking task on the S\&P 500 constituents; they document significant gross returns from the model-driven long-short portfolio and a sharp deterioration once realistic transaction costs are imposed --- a pattern that will recur in the present project.
+
+Methodologically, the \emph{conditional-on-regime} framing remains comparatively under-explored for high-beta intraday names.  The proposed two-stage architecture --- a regime classifier whose output gates a conditional trend forecaster --- separates the question ``what state is the market in?''\ from ``given that state, what is the next-bar drift?''\ and allows each stage to be evaluated against simpler baselines.  Evaluation is via walk-forward cross-validation with purged embargoes \cite{lopezdeprado2018} so that the train/test split respects the temporal structure of the labels.  The remainder of this report surveys the three papers that most directly inform the methodological choices: Hamilton (1989) as the theoretical foundation of the regime classifier, Lim et al.\ (2021) as the deep-learning forecaster of record for multi-horizon problems with rich exogenous inputs, and Krauss et al.\ (2017) as the empirical benchmark for tree-based ensemble forecasting on U.S.\ equities under realistic costs.
+
+\section{Problem Setup}
+
+\subsection{Hamilton (1989): Markov-Switching Autoregression}
+
+Hamilton's theoretical setting is the analysis of a univariate time series $\{y_t\}_{t=1}^{T}$ whose dynamics depend on an unobserved discrete state $s_t \in \{1,2,\dots,K\}$ that follows a first-order time-homogeneous Markov chain with $K \times K$ transition matrix $P = [p_{ij}]$ where
+\begin{equation}
+    p_{ij} \;=\; \mathbb{P}(s_t = j \mid s_{t-1} = i), \qquad \sum_{j=1}^{K} p_{ij} = 1 \quad \forall i.
+\end{equation}
+Conditional on the regime path, $y_t$ follows a Gaussian autoregression of order $r$:
+\begin{equation}
+    y_t - \mu(s_t) \;=\; \sum_{k=1}^{r} \phi_k \bigl( y_{t-k} - \mu(s_{t-k}) \bigr) + \varepsilon_t, \qquad \varepsilon_t \sim \mathcal{N}\bigl(0,\sigma^2(s_t)\bigr),
+\label{eq:msar}
+\end{equation}
+where $\mu : \{1,\dots,K\} \to \mathbb{R}$ is the regime-dependent mean, $\sigma^2 : \{1,\dots,K\} \to \mathbb{R}_{>0}$ is the regime-dependent variance, and $\bm{\phi} = (\phi_1,\dots,\phi_r)$ is a regime-invariant vector of autoregressive coefficients (Hamilton allows but does not require regime-dependent autoregressive coefficients; the homogeneous version is the simplest and most-studied case).
+
+The full parameter vector is $\bm{\theta} = \bigl( \{\mu(j)\}_{j=1}^{K}, \{\sigma^2(j)\}_{j=1}^{K}, \bm{\phi}, P \bigr)$.  Let $\bm{Y}_t = (y_1,\dots,y_t)$ denote the information set up to time $t$, and define the \emph{filtered} and \emph{smoothed} regime probabilities respectively as
+\begin{equation}
+    \xi_{t \mid t}(j) \;\equiv\; \mathbb{P}(s_t = j \mid \bm{Y}_t; \bm{\theta}), \qquad
+    \xi_{t \mid T}(j) \;\equiv\; \mathbb{P}(s_t = j \mid \bm{Y}_T; \bm{\theta}).
+\end{equation}
+The major \emph{theoretical problem} the paper solves is to compute these probabilities recursively in $t$ for arbitrary $K$ and $r$, and to use the resulting likelihood as the objective for maximum-likelihood estimation of $\bm{\theta}$.  The unobservability of $\{s_t\}$ rules out direct estimation of \eqref{eq:msar} by ordinary least squares; the latent state must be \emph{integrated out} through a recursion analogous to the Kalman filter for linear-Gaussian state spaces, but adapted to the discrete-state, non-Gaussian setting.
+
+The principal assumptions are:
+(A1) the regime process is a first-order Markov chain with constant transition matrix $P$ and is exogenous with respect to past innovations;
+(A2) the innovation $\varepsilon_t$ is conditionally Gaussian and independent across $t$ given $s_t$;
+(A3) the autoregressive lag length $r$ and the number of regimes $K$ are known a priori;
+(A4) the parameter space is compact and $\bm{\theta}$ lies in the interior of an identified region.
+
+\subsection{Lim, Arik, Loeff, and Pfister (2021): Multi-Horizon Forecasting}
+
+The practical problem addressed is multi-horizon time-series forecasting in the presence of rich heterogeneous inputs.  Concretely, one observes for each entity $i$ and each time $t$ a tuple of (a) static covariates $\bm{x}_i^{\text{stat}} \in \mathbb{R}^{d_s}$ that do not vary in time (e.g., asset identifier, sector), (b) past observed inputs $\bm{x}_{i,t-k:t}^{\text{obs}}$ over a context window of length $k$, and (c) known future inputs $\bm{x}_{i,t:t+\tau}^{\text{known}}$ over a forecast horizon $\tau$ (e.g., scheduled macro release flags, calendar holidays).  The target is the future trajectory $\bm{y}_{i,t+1:t+\tau}$.  The forecaster must produce, at each forecast origin $t$, a vector of quantile predictions $\hat{y}_{i,t+h}^{(q)}$ for $h \in \{1,\dots,\tau\}$ and $q$ in a finite set of quantile levels $\mathcal{Q} \subset (0,1)$, optimized under the pinball (quantile) loss.
+
+Notations introduced or repurposed by the paper include the Gated Residual Network (GRN), the Variable Selection Network (VSN), and the per-feature gating coefficients.  Definitions are given in Section~\ref{sec:tft}.  The principal assumptions, mostly inherited from sequence modeling, are stationarity within reasonable rolling windows, sufficient training history per entity, and accessibility of the known-future inputs at inference time.
+
+\subsection{Krauss, Do, and Huck (2017): Cross-Sectional Statistical Arbitrage}
+
+The practical problem is end-of-day directional prediction on the constituents of the S\&P 500 framed as a binary cross-sectional ranking task.  For each constituent $i$ and each trading day $t$, the authors define the standardized one-day forward return relative to the cross-sectional median:
+\begin{equation}
+    Y_{i,t} \;=\; \mathbb{1}\!\left\{ r_{i,t+1} > \widetilde{r}_{t+1} \right\}, \qquad
+    \widetilde{r}_{t+1} \;=\; \mathrm{median}_{j \in \mathcal{U}_{t+1}} r_{j,t+1},
+\end{equation}
+where $r_{i,t+1}$ is the close-to-close log return of stock $i$ on day $t+1$ and $\mathcal{U}_{t+1}$ is the constituent set on that date.  Inputs are lagged log returns at multiple horizons: $\bm{x}_{i,t} = (r_{i,t-1}, r_{i,t-2}, \dots, r_{i,t-m})$ with $m = 240$ trading days in their main specification.  The target therefore reflects whether stock $i$ will outperform the median of the universe one day ahead, conditional on its own recent return path.
+
+A model produces a probability $\hat{p}_{i,t} = \widehat{\mathbb{P}}(Y_{i,t} = 1 \mid \bm{x}_{i,t})$ that stock $i$ outperforms the median.  At each $t$ the model is sorted by $\hat{p}_{i,t}$, the top-$K$ stocks form a long basket, and the bottom-$K$ form a short basket, equally weighted within each side.  The strategy's daily P\&L is the long-short return less round-trip transaction costs.  The principal assumptions are (i) the universe is large enough that the cross-sectional median is well-defined and stable, (ii) the lagged-return panel is exchangeable across stocks within each day after the cross-sectional standardization, and (iii) the look-back window is long enough to capture multi-month return reversals but short enough to remain stationary.
+
+\section{Theory}
+
+\subsection{Theoretical Contribution}
+\label{sec:hamilton-contrib}
+
+The theoretical contribution of Hamilton \cite{hamilton1989} is a self-contained inferential framework for the Markov-switching autoregression \eqref{eq:msar}, comprising (i) a forward filtering recursion for the filtered regime probabilities $\xi_{t \mid t}$, (ii) a backward smoothing recursion for the smoothed regime probabilities $\xi_{t \mid T}$, (iii) an explicit form for the log-likelihood of $\bm{Y}_T$ that emerges as a by-product of filtering, and (iv) an EM-style iteration for maximum-likelihood estimation of the full parameter vector $\bm{\theta}$.  All four components extend naturally to $K \geq 2$ regimes, to multivariate $y_t$, and (with care) to non-Gaussian innovations.
+
+\paragraph{Filtering recursion.}  Let $\bm{\xi}_{t \mid t} \in \Delta^{K-1}$ denote the column vector of filtered probabilities at time $t$, and let $\bm{\eta}_t \in \mathbb{R}^{K}_{>0}$ denote the vector whose $j$-th entry is the conditional density $f(y_t \mid s_t = j, \bm{Y}_{t-1}; \bm{\theta})$.  Hamilton's central recursive identity is
+\begin{equation}
+    \bm{\xi}_{t \mid t} \;=\; \frac{ \bigl( P^{\!\top} \bm{\xi}_{t-1 \mid t-1} \bigr) \odot \bm{\eta}_t }{ \bm{1}^{\!\top}\!\bigl[ \bigl(P^{\!\top} \bm{\xi}_{t-1 \mid t-1}\bigr) \odot \bm{\eta}_t \bigr] },
+\label{eq:hamilton-filter}
+\end{equation}
+where $\odot$ denotes element-wise multiplication and $\bm{1}$ is a vector of ones.  The numerator is the joint density-weighted forward sweep through the Markov chain; the denominator normalizes to a probability distribution.  Crucially, the denominator of \eqref{eq:hamilton-filter} also equals the conditional density $f(y_t \mid \bm{Y}_{t-1}; \bm{\theta})$, so the log-likelihood admits the explicit form
+\begin{equation}
+    \ell(\bm{\theta}) \;=\; \sum_{t=1}^{T} \log \bm{1}^{\!\top}\!\bigl[ \bigl(P^{\!\top} \bm{\xi}_{t-1 \mid t-1}\bigr) \odot \bm{\eta}_t \bigr],
+\label{eq:hamilton-loglik}
+\end{equation}
+which is differentiable in $\bm{\theta}$ and admits gradient-based maximum-likelihood estimation.  The smoothing recursion, derived in the same paper, expresses $\bm{\xi}_{t \mid T}$ as a backward sweep that combines the filtered $\bm{\xi}_{t \mid t}$ with the conditional probabilities of $s_{t+1}$ given the future of $\bm{Y}_T$.
+
+\paragraph{Significance.}  The technical novelty of this contribution lies in solving an inference problem with two distinct sources of intractability simultaneously: the latent state is discrete (so the Kalman filter for linear-Gaussian state-space models does not directly apply), and the observable is non-trivially serially correlated (so simple HMM filtering on $y_t$ alone, which assumes conditional independence given $s_t$, is also not adequate).  Hamilton's filter handles both by exploiting the autoregressive structure to express the conditional density $f(y_t \mid s_t = j, \bm{Y}_{t-1}; \bm{\theta})$ in closed form (as a Gaussian density depending on regime-conditional means and variances) and propagating only the discrete-state posterior through the Markov chain.  The recursion is $\mathcal{O}(K^2)$ per time step and trivially parallelizable in the EM updates.
+
+The implications for practical usage are far-reaching.  Any application that needs to (a) infer a small number of unobserved regimes from a single time series in real time, (b) compute regime-conditional likelihoods for downstream decision-making, or (c) calibrate the Markov transition matrix from data alone, can instantiate the Hamilton filter directly.  Within the present project, the Stage-1 Gaussian HMM applied to standardized 5-minute window features is a direct multivariate generalization of \eqref{eq:msar} with $r = 0$ (no autoregression in the feature space, which is itself constructed from lagged price-volume statistics) and $K \in \{3,4\}$.  The filtered probabilities $\xi_{t \mid t}$ are exactly the regime-posterior signals consumed by the Stage-2 trend forecaster and the swing-strategy state machine.  Without the Hamilton filter (or a closely related discrete-state filter), the regime-conditional architecture would have no tractable inferential machinery.
+
+\subsection{Sketches of Proof}
+
+\paragraph{Forward filtering recursion.}  The starting point is the joint distribution of $(s_t, y_t)$ given $\bm{Y}_{t-1}$, which factorizes as
+\begin{equation}
+    \mathbb{P}(s_t = j, y_t \mid \bm{Y}_{t-1}) \;=\; \mathbb{P}(s_t = j \mid \bm{Y}_{t-1}) \cdot f(y_t \mid s_t = j, \bm{Y}_{t-1}),
+\end{equation}
+where the first factor is computed by marginalizing over $s_{t-1}$:
+\begin{equation}
+    \mathbb{P}(s_t = j \mid \bm{Y}_{t-1}) \;=\; \sum_{i=1}^{K} p_{ij} \cdot \mathbb{P}(s_{t-1} = i \mid \bm{Y}_{t-1}) \;=\; \bigl[ P^{\!\top} \bm{\xi}_{t-1 \mid t-1} \bigr]_j.
+\end{equation}
+Bayes' rule then gives the posterior of $s_t$ after observing $y_t$:
+\begin{equation}
+    \mathbb{P}(s_t = j \mid \bm{Y}_t) \;\propto\; \mathbb{P}(s_t = j \mid \bm{Y}_{t-1}) \cdot f(y_t \mid s_t = j, \bm{Y}_{t-1}),
+\end{equation}
+which after stacking over $j$ and normalizing yields \eqref{eq:hamilton-filter}.  The normalization constant is by construction the conditional density $f(y_t \mid \bm{Y}_{t-1}; \bm{\theta})$, and the chain rule yields \eqref{eq:hamilton-loglik}.
+
+\paragraph{Backward smoothing recursion (Kim's smoother).}  The smoothing identity exploits the conditional independence $s_t \perp \bm{Y}_T \setminus \bm{Y}_t \mid s_{t+1}, \bm{Y}_t$ implied by the Markov property and the forward dependence structure.  This gives
+\begin{equation}
+    \mathbb{P}(s_t = j \mid \bm{Y}_T) \;=\; \sum_{k=1}^{K} \mathbb{P}(s_{t+1} = k \mid \bm{Y}_T) \cdot \frac{ p_{jk} \cdot \xi_{t \mid t}(j) }{ \sum_{i} p_{ik} \cdot \xi_{t \mid t}(i) },
+\label{eq:smoother}
+\end{equation}
+which is iterated backward from $t = T-1$ to $t = 1$ using the filtered probabilities $\bm{\xi}_{\cdot \mid \cdot}$ stored from the forward sweep.
+
+\paragraph{EM algorithm for parameter estimation.}  Treating the latent regime path $\{s_t\}_{t=1}^{T}$ as missing data, the complete-data log-likelihood is
+\begin{equation}
+    \ell^{\mathrm{c}}(\bm{\theta}) \;=\; \sum_{t=2}^{T} \log p_{s_{t-1} s_t} \;+\; \sum_{t=1}^{T} \log f(y_t \mid s_t, \bm{Y}_{t-1}; \bm{\theta}),
+\end{equation}
+which is straightforward to maximize separately in $P$ and in the regime-conditional Gaussian parameters when the regime path is known.  In the E-step, the smoothed marginals $\xi_{t \mid T}(j)$ and pairwise marginals $\xi_{t,t+1 \mid T}(j,k) = \mathbb{P}(s_t=j, s_{t+1}=k \mid \bm{Y}_T)$ are computed from the filter and \eqref{eq:smoother}.  In the M-step, the transition matrix is updated as a normalized ratio of expected pairwise counts,
+\begin{equation}
+    \hat{p}_{ij}^{\,(k+1)} \;=\; \frac{ \sum_{t=1}^{T-1} \xi_{t,t+1 \mid T}^{\,(k)}(i,j) }{ \sum_{t=1}^{T-1} \xi_{t \mid T}^{\,(k)}(i) },
+\end{equation}
+and the regime-conditional means/variances are updated as smoothed-probability-weighted averages of $y_t$ and $(y_t - \mu(j))^2$, respectively.  Convergence to a (possibly local) maximum of the log-likelihood follows from the general EM theory of Dempster, Laird, and Rubin.
+
+\paragraph{Asymptotic distribution of the MLE.}  Under the regularity conditions (A1)--(A4) plus standard identifiability assumptions on the regime labelling, Hamilton establishes that the maximum-likelihood estimator $\hat{\bm{\theta}}_T$ is consistent and asymptotically normal:
+\begin{equation}
+    \sqrt{T} \bigl( \hat{\bm{\theta}}_T - \bm{\theta}_0 \bigr) \;\xrightarrow{d}\; \mathcal{N}\!\bigl( \bm{0}, \mathcal{I}(\bm{\theta}_0)^{-1} \bigr),
+\end{equation}
+where $\mathcal{I}(\bm{\theta}_0)$ is the Fisher information matrix.  The proof proceeds via the standard score-and-Hessian expansion, with the technical work concentrated on showing that the score function evaluated at the truth has zero conditional expectation given the latent regime --- which, in turn, follows from the fact that the filtered probabilities $\bm{\xi}_{t \mid t}$ are Bayesian posteriors and the score is a weighted sum of conditional scores against those posteriors.
+
+\section{Practice}
+
+\subsection{Lim, Arik, Loeff, and Pfister (2021): Temporal Fusion Transformer}
+\label{sec:tft}
+
+\paragraph{Architecture.}
+The Temporal Fusion Transformer (TFT) \cite{lim2021} is an encoder--decoder architecture composed of five interlocking blocks designed to provide both forecast accuracy and feature-level interpretability on multi-horizon time-series tasks with mixed static, observed, and known-future inputs.
+
+\textbf{(1) Variable Selection Networks (VSN).}  Three separate VSNs are instantiated, one each for static covariates, past observed inputs, and known future inputs.  Each VSN maps the per-feature embeddings $\{\bm{e}^{(1)},\dots,\bm{e}^{(d)}\}$ at a given time step to a weighted sum
+\[
+    \bm{x}_t^{\text{vsn}} \;=\; \sum_{j=1}^{d} v_t^{(j)} \cdot \mathrm{GRN}^{(j)}\!\bigl(\bm{e}_t^{(j)}\bigr),
+\]
+where the per-feature gates $\bm{v}_t = (v_t^{(1)},\dots,v_t^{(d)})$ are produced by a softmax over a flattened-embedding GRN: $\bm{v}_t = \mathrm{softmax}\bigl(\mathrm{GRN}^{\text{select}}(\mathrm{flatten}(\bm{e}_t))\bigr)$.  The gates are interpretable as time-varying feature importances.
+
+\textbf{(2) Gated Residual Network (GRN).}  The basic non-linear primitive is
+\[
+    \mathrm{GRN}(\bm{a}, \bm{c}) \;=\; \mathrm{LayerNorm}\Bigl( \bm{a} \,+\, \mathrm{GLU}\bigl( W_2 \cdot \mathrm{ELU}(W_1 \bm{a} + W_3 \bm{c} + b_1) + b_2 \bigr) \Bigr),
+\]
+where $\bm{c}$ is an optional context vector, $\mathrm{GLU}$ is the Gated Linear Unit of Dauphin et al.\ ($\mathrm{GLU}(\bm{z}) = \bm{z}_1 \odot \sigma(\bm{z}_2)$ on the channel-split halves of $\bm{z}$), $\mathrm{ELU}$ is the exponential linear unit, and $W_1, W_2, W_3, b_1, b_2$ are trainable parameters.  GRNs are reused throughout the network as the universal trainable transformation block.
+
+\textbf{(3) Static Covariate Encoders.}  Static covariates are passed through four parallel GRNs to produce four separate context vectors, $\bm{c}^{\text{vs}}, \bm{c}^{\text{enc}}, \bm{c}^{\text{cell}}, \bm{c}^{\text{static}}$, used respectively to bias the variable-selection gates, the encoder LSTM hidden state, the encoder LSTM cell state, and downstream attention layers.
+
+\textbf{(4) Sequence-to-sequence local processing.}  The selected past inputs are fed to a stacked LSTM encoder; the selected known-future inputs are fed to a stacked LSTM decoder.  Each layer's output passes through a Gated Residual Network with skip connection from the corresponding VSN output, allowing the model to bypass the LSTM layer when the recurrence is uninformative.
+
+\textbf{(5) Interpretable multi-head attention.}  After the LSTM stage, an interpretable multi-head self-attention layer mixes information across the full encoder--decoder output sequence.  The interpretable variant aggregates attention weights across heads (rather than concatenating head outputs) so that the per-time-step attention coefficient is a single interpretable scalar per query/key pair.  Causal masking restricts attention to the past at the query position.
+
+The decoder outputs, after a final position-wise GRN and a linear projection, produce the quantile predictions $\hat{y}_{i,t+h}^{(q)}$ for each horizon $h$ and quantile $q$.
+
+\paragraph{Training objective.}  The TFT is trained end-to-end under the quantile (pinball) loss:
+\begin{equation}
+    \mathcal{L}(\bm{\theta}_{\text{TFT}}) \;=\; \frac{1}{N \tau |\mathcal{Q}|} \sum_{i=1}^{N} \sum_{h=1}^{\tau} \sum_{q \in \mathcal{Q}} \rho_q\!\bigl( y_{i,t+h} - \hat{y}_{i,t+h}^{(q)} \bigr), \quad
+    \rho_q(u) = \max\{q u, (q-1) u\}.
+\label{eq:pinball}
+\end{equation}
+Optimization uses Adam with learning-rate scheduling; gradient clipping and dropout (within GRNs and on attention weights) regularize the model.  Early stopping on a held-out validation window is the canonical training protocol.
+
+\paragraph{Trainable vs.\ non-trainable parameters.}  Trainable: all GRN weight matrices and biases, LSTM kernel and recurrent kernels for both encoder and decoder, multi-head attention $Q, K, V$ projection matrices, the variable-selection softmax projection, the per-feature embedding lookup tables for categorical static covariates, and the final per-quantile output projection.  Non-trainable: the quantile levels $\mathcal{Q}$, the context window $k$ and forecast horizon $\tau$, the LayerNorm running statistics (in inference mode), the causal-attention mask, the static feature taxonomy, and the loss weighting scheme \eqref{eq:pinball}.
+
+\paragraph{Hyperparameters of practical importance.}  Hidden state dimension $d_{\text{model}}$ (commonly 64--320), number of attention heads $h$ (commonly 4--8), number of LSTM layers (typically 1--2 each side), dropout rate within GRNs (typically 0.1--0.3), attention dropout, batch size, learning rate, gradient-clip norm, context length $k$, forecast horizon $\tau$, and the quantile set $\mathcal{Q}$ (commonly $\{0.1, 0.5, 0.9\}$).  Lim et al.\ tune these via random search on a validation split.
+
+\subsection{Krauss, Do, and Huck (2017): Gradient-Boosted Trees for Statistical Arbitrage}
+
+\paragraph{Model family.}  Of the three model classes the authors compare (DNN, GBT, RF), the gradient-boosted regression-tree learner is the most directly relevant to the present project's Stage-2 LightGBM architecture, so we focus on it here.  GBT estimates the function
+\begin{equation}
+    F_M(\bm{x}) \;=\; \sum_{m=1}^{M} \nu \cdot h_m(\bm{x}; \bm{\gamma}_m), \qquad h_m(\bm{x}; \bm{\gamma}_m) = \sum_{\ell=1}^{L_m} c_{m,\ell} \,\mathbb{1}\{\bm{x} \in R_{m,\ell}\},
+\end{equation}
+where $h_m$ is the $m$-th regression tree, characterized by a partition $\{R_{m,1},\dots,R_{m,L_m}\}$ of the input space and per-leaf constants $c_{m,\ell}$; $\nu \in (0,1]$ is the learning-rate (shrinkage) parameter; and $M$ is the number of boosting rounds.  Each tree depth is capped by the interaction-depth hyperparameter $L = L_m$, and each leaf is required to hold at least \texttt{n.minobsinnode} training observations.
+
+\paragraph{Training objective.}  Krauss et al.\ frame the problem as a binary classification of $Y_{i,t} \in \{0,1\}$ and use the Bernoulli (logistic) deviance
+\begin{equation}
+    \mathcal{L}\bigl( F_M \bigr) \;=\; \sum_{(i,t) \in \mathcal{D}} \log\!\bigl( 1 + \exp\!\bigl( -2 (2 Y_{i,t} - 1) F_M(\bm{x}_{i,t}) \bigr) \bigr),
+\end{equation}
+which is the canonical gradient-boosting binary objective implemented in the \texttt{gbm} R package.  The class-probability estimate is recovered as $\hat{p}_{i,t} = \sigma(2 F_M(\bm{x}_{i,t}))$, where $\sigma$ is the logistic function.
+
+\paragraph{Greedy boosting algorithm.}  At iteration $m$, fix the current ensemble $F_{m-1}$.  Compute the negative-gradient pseudo-residuals
+\[
+    z_{i,t}^{(m)} \;=\; -\,\Bigl. \tfrac{\partial \mathcal{L}}{\partial F(\bm{x}_{i,t})} \Bigr\rvert_{F = F_{m-1}} \;=\; \tfrac{2(2Y_{i,t}-1)}{1 + \exp\!\bigl( 2(2Y_{i,t}-1) F_{m-1}(\bm{x}_{i,t}) \bigr)}.
+\]
+Fit a regression tree $h_m$ to $\{(\bm{x}_{i,t}, z_{i,t}^{(m)})\}$ using least-squares splits with depth cap $L$.  Replace each leaf constant $c_{m,\ell}$ with the one-step Newton update for the per-leaf cell, and set $F_m \leftarrow F_{m-1} + \nu h_m$.  Termination is at $M$ iterations or upon early-stopping on a validation split.
+
+\paragraph{Trainable vs.\ non-trainable parameters.}  Trainable: the partition structure of every tree, the per-leaf constants $\{c_{m,\ell}\}$, and the (very small) implicit calibration mapping from log-odds to probabilities.  Non-trainable: the number of boosting rounds $M$, learning rate $\nu$ (\texttt{shrinkage}), interaction depth $L$ (\texttt{interaction.depth}), minimum observations per leaf (\texttt{n.minobsinnode}), bag fraction (\texttt{bag.fraction}, controlling stochastic gradient boosting), and the loss family (Bernoulli for classification).
+
+\paragraph{Hyperparameters of practical importance.}  Krauss et al.\ explicitly grid-search over a small space and report final values: \texttt{n.trees}~$M = 100$, \texttt{shrinkage}~$\nu = 0.1$, \texttt{interaction.depth}~$L \in \{1,2,5\}$, \texttt{bag.fraction}~$ = 0.5$, and \texttt{n.minobsinnode}~$= 10$.  They observe the standard tradeoff: larger $L$ captures more interactions but risks over-fitting on the daily panel; smaller $\nu$ improves generalization but requires proportionally larger $M$ to converge.
+
+\paragraph{Architecture comparison and headline result.}  The authors compare GBT against (i) a five-hidden-layer feed-forward DNN trained in TensorFlow with $\{31, 31, 31, 10\}$ units per hidden layer, ReLU activations, dropout, and early stopping; and (ii) a random forest with \texttt{ntree}~$= 1000$ and \texttt{mtry}~$= \sqrt{m}$.  All three model classes produce significant pre-cost long-short returns on the S\&P 500 over their 1992--2015 sample, with annualized Sharpe ratios in the 1.0--2.5 range \emph{before} transaction costs.  Once realistic round-trip costs are imposed (the authors test 5~bp and 10~bp per side), the realized Sharpe falls dramatically and most of the strategy's economic value is consumed.  The pattern is directly relevant to the present project's Stage-2 LightGBM and Stage-3 swing strategy --- the gross-versus-net gap is the single most important determinant of strategy viability, and Krauss et al.\ document the magnitude of this gap on a closely related cross-sectional task.
+
+\paragraph{Relation to the present project.}  The Stage-2 conditional forecaster in the proposed pipeline is a per-regime LightGBM, which is the modern leaf-wise growth descendant of the depth-wise tree boosting that Krauss et al.\ analyze.  The same hyperparameter family --- learning rate, num\_leaves (analogous to interaction depth), min\_child\_samples (analogous to n.minobsinnode), subsample fraction --- governs both implementations.  The major architectural difference is that LightGBM uses histogram-based split-finding and leaf-wise (best-first) tree growth, both of which deliver $5\!-\!10\!\times$ training speed-ups on the kind of high-cardinality minute-bar feature panels used in the present project.  Krauss et al.'s practical insights into hyperparameter sensitivity, ensemble averaging, and cost-realistic backtesting transfer almost verbatim.
+
+\begin{thebibliography}{99}
+
+\bibitem{ang2002}
+Ang, A., \& Bekaert, G.\ (2002).
+\newblock Regime switches in interest rates.
+\newblock \emph{Journal of Business \& Economic Statistics}, 20(2), 163--182.
+
+\bibitem{billio2010}
+Billio, M., Casarin, R., \& Osuntuyi, A.\ (2010).
+\newblock Markov switching GARCH models for Bayesian hedging on energy futures markets.
+\newblock \emph{Energy Economics}, 70, 545--562.
+
+\bibitem{cartea2015}
+Cartea, \'{A}., Jaimungal, S., \& Penalva, J.\ (2015).
+\newblock \emph{Algorithmic and High-Frequency Trading}.
+\newblock Cambridge University Press.
+
+\bibitem{cont2001}
+Cont, R.\ (2001).
+\newblock Empirical properties of asset returns: stylized facts and statistical issues.
+\newblock \emph{Quantitative Finance}, 1(2), 223--236.
+
+\bibitem{engle2006}
+Engle, R.\ F., \& Gallo, G.\ M.\ (2006).
+\newblock A multiple indicators model for volatility using intra-daily data.
+\newblock \emph{Journal of Econometrics}, 131(1--2), 3--27.
+
+\bibitem{engle2016}
+Engle, R.\ F.\ (2016).
+\newblock Dynamic conditional beta.
+\newblock \emph{Journal of Financial Econometrics}, 14(4), 643--667.
+
+\bibitem{hamilton1989}
+Hamilton, J.\ D.\ (1989).
+\newblock A new approach to the economic analysis of nonstationary time series and the business cycle.
+\newblock \emph{Econometrica}, 57(2), 357--384.
+
+\bibitem{krauss2017}
+Krauss, C., Do, X.\ A., \& Huck, N.\ (2017).
+\newblock Deep neural networks, gradient-boosted trees, random forests: Statistical arbitrage on the S\&P 500.
+\newblock \emph{European Journal of Operational Research}, 259(2), 689--702.
+
+\bibitem{lim2021}
+Lim, B., Ar\i k, S.\ \"{O}., Loeff, N., \& Pfister, T.\ (2021).
+\newblock Temporal Fusion Transformers for interpretable multi-horizon time series forecasting.
+\newblock \emph{International Journal of Forecasting}, 37(4), 1748--1764.
+
+\bibitem{lopezdeprado2018}
+L\'{o}pez de Prado, M.\ (2018).
+\newblock \emph{Advances in Financial Machine Learning}.
+\newblock John Wiley \& Sons.
+
+\bibitem{sezer2020}
+Sezer, O.\ B., Gudelek, M.\ U., \& Ozbayoglu, A.\ M.\ (2020).
+\newblock Financial time series forecasting with deep learning: A systematic literature review: 2005--2019.
+\newblock \emph{Applied Soft Computing}, 90, 106181.
+
+\end{thebibliography}
+
+\end{document}

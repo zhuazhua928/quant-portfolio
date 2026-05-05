@@ -1,0 +1,60 @@
+{
+  "asof": "2026-05-03",
+  "front_month": {
+    "ticker": "NG=F",
+    "close": 2.827,
+    "asof": "2026-05-03",
+    "change_d": 0.047,
+    "change_d_pct": 1.691,
+    "change_w_pct": 10.863,
+    "vol_30d_annualized": 0.4377
+  },
+  "spot": {
+    "value": 2.72,
+    "asof": "2026-04-27"
+  },
+  "curve": {
+    "asof": "2026-05-03",
+    "contango": {
+      "m1": 2.827,
+      "m2": 3.121,
+      "spread": 0.294,
+      "label": "contango"
+    },
+    "widow_maker": {
+      "year": 2027,
+      "spread": 0.265
+    },
+    "winter_strip": {
+      "contracts": [
+        "2026-11",
+        "2026-12",
+        "2027-01",
+        "2027-02",
+        "2027-03"
+      ],
+      "average": 4.0184
+    },
+    "summer_winter": {
+      "summer_avg": 3.0863,
+      "winter_avg": 4.0184,
+      "diff": 0.9321
+    }
+  },
+  "storage": {
+    "available": true,
+    "asof": "2026-04-24",
+    "latest": 2142.0,
+    "weekly_change": {
+      "delta": 79.0,
+      "label": "build"
+    },
+    "yoy": {
+      "latest": 2142.0,
+      "year_ago": 2041.0,
+      "delta": 101.0,
+      "pct": 4.95
+    },
+    "zscore": 0.366
+  }
+}
