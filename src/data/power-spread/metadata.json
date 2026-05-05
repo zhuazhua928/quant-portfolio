@@ -1,0 +1,443 @@
+{
+  "asof": "2026-05-05T22:25:15.870418+00:00",
+  "data": {
+    "n_hourly_rows": 35058,
+    "expected_hourly_rows": 35064,
+    "missing_hours_pct": 0.017,
+    "n_daily_rows": 1461,
+    "first_date": "2022-01-01",
+    "last_date": "2025-12-31"
+  },
+  "configs": [
+    {
+      "config_id": "arx_levels__T30__X-demandfcst_wind",
+      "model": "arx_levels",
+      "window": 30,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_levels__T30__X-demandfcst_wind_solar",
+      "model": "arx_levels",
+      "window": 30,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean",
+        "solar_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_levels__T30__X-wind",
+      "model": "arx_levels",
+      "window": 30,
+      "x_cols": [
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_levels__T91__X-demandfcst_wind",
+      "model": "arx_levels",
+      "window": 91,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_levels__T91__X-demandfcst_wind_solar",
+      "model": "arx_levels",
+      "window": 91,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean",
+        "solar_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_levels__T91__X-wind",
+      "model": "arx_levels",
+      "window": 91,
+      "x_cols": [
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_levels__T182__X-demandfcst_wind",
+      "model": "arx_levels",
+      "window": 182,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_levels__T182__X-demandfcst_wind_solar",
+      "model": "arx_levels",
+      "window": 182,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean",
+        "solar_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_levels__T182__X-wind",
+      "model": "arx_levels",
+      "window": 182,
+      "x_cols": [
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_levels__T365__X-demandfcst_wind",
+      "model": "arx_levels",
+      "window": 365,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_levels__T365__X-demandfcst_wind_solar",
+      "model": "arx_levels",
+      "window": 365,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean",
+        "solar_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_levels__T365__X-wind",
+      "model": "arx_levels",
+      "window": 365,
+      "x_cols": [
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T30__X-demandfcst_wind",
+      "model": "arx_spread",
+      "window": 30,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T30__X-demandfcst_wind_solar",
+      "model": "arx_spread",
+      "window": 30,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean",
+        "solar_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T30__X-wind",
+      "model": "arx_spread",
+      "window": 30,
+      "x_cols": [
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T91__X-demandfcst_wind",
+      "model": "arx_spread",
+      "window": 91,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T91__X-demandfcst_wind_solar",
+      "model": "arx_spread",
+      "window": 91,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean",
+        "solar_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T91__X-wind",
+      "model": "arx_spread",
+      "window": 91,
+      "x_cols": [
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T182__X-demandfcst_wind",
+      "model": "arx_spread",
+      "window": 182,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T182__X-demandfcst_wind_solar",
+      "model": "arx_spread",
+      "window": 182,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean",
+        "solar_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T182__X-wind",
+      "model": "arx_spread",
+      "window": 182,
+      "x_cols": [
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T365__X-demandfcst_wind",
+      "model": "arx_spread",
+      "window": 365,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T365__X-demandfcst_wind_solar",
+      "model": "arx_spread",
+      "window": 365,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean",
+        "solar_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "arx_spread__T365__X-wind",
+      "model": "arx_spread",
+      "window": 365,
+      "x_cols": [
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "probit__T91__X-demandfcst_wind",
+      "model": "probit",
+      "window": 91,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "probit__T91__X-demandfcst_wind_solar",
+      "model": "probit",
+      "window": 91,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean",
+        "solar_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "probit__T91__X-wind",
+      "model": "probit",
+      "window": 91,
+      "x_cols": [
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "probit__T182__X-demandfcst_wind",
+      "model": "probit",
+      "window": 182,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "probit__T182__X-demandfcst_wind_solar",
+      "model": "probit",
+      "window": 182,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean",
+        "solar_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "probit__T182__X-wind",
+      "model": "probit",
+      "window": 182,
+      "x_cols": [
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "probit__T365__X-demandfcst_wind",
+      "model": "probit",
+      "window": 365,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "probit__T365__X-demandfcst_wind_solar",
+      "model": "probit",
+      "window": 365,
+      "x_cols": [
+        "demand_fcst_mean",
+        "wind_mean",
+        "solar_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    },
+    {
+      "config_id": "probit__T365__X-wind",
+      "model": "probit",
+      "window": 365,
+      "x_cols": [
+        "wind_mean"
+      ],
+      "lag_set": [
+        2,
+        7
+      ]
+    }
+  ],
+  "wind_solar_caveat": "EIA-930 publishes wind/solar realized net generation but no public day-ahead forecast series. We substitute lag-1 persistence (yesterday's realized) as the in-advance proxy. The demand forecast (DF) is a true day-ahead forecast and is used as-is."
+}

@@ -18,6 +18,70 @@ export interface Project {
 
 export const projects: Project[] = [
   {
+    slug: "ercot-da-rt-spread",
+    code: "P6",
+    title: "ERCOT Day-Ahead vs Real-Time Spread — Replication & Backtest",
+    subtitle:
+      "Methodological replication of Maciejowska, Nitka & Weron (2019) on ERCOT North Hub: ARX + Probit forecasts of the DA/RT spread sign, walk-forward backtest with $0.50/MWh switching cost",
+    category: "Energy / Replication",
+    period: "2026",
+    tags: [
+      "Replication",
+      "ERCOT",
+      "ARX",
+      "Probit",
+      "Walk-Forward",
+      "Backtest",
+      "EIA-930",
+      "gridstatus",
+      "Python",
+    ],
+    summary:
+      "End-to-end replication of Maciejowska, Nitka & Weron (Energies 2019) on a US analog: small generator chooses each day whether to commit to ERCOT day-ahead (DAM) or real-time (RTM) Settlement Point Prices at HB_NORTH. The decision rule is built on three forecast specifications — ARX modelling DA and RT prices separately (paper's best on Polish data), ARX modelling the spread directly, and a Probit on Pr(spread > 0). Each is wrapped in a walk-forward engine over 2022-2025 with calibration windows of 30, 91, 182, and 365 days, and the strategy is settled with a $0.50/MWh per-switch trading cost plus a sensitivity sweep. The page is built around the backtest pipeline itself: a six-stage flow (ingest → panel → features → models → walk-forward → evaluate → export) is the default landing tab so a reviewer sees the data path before the equity curve. Outputs are pre-computed JSON; the page is fully static.",
+    sections: [
+      {
+        title: "What this replicates",
+        content:
+          "The paper's central question is whether a small RES generator gains by forecasting the day-ahead vs intraday/balancing spread instead of always committing to one market. We replicate the methodology — ARX with deterministic dummies, lag set L = {2,7}, exogenous demand and wind covariates, plus Probit at thresholds μ ∈ {0.30, 0.40, 0.50} — but on ERCOT HB_NORTH because Polish balancing-market data is not freely reproducible. Markets and currency differ, so the headline numbers don't compare directly to the paper's Tables 3-4; the model rankings and threshold behaviour are what's being benchmarked.",
+      },
+      {
+        title: "Backtest pipeline",
+        content:
+          "The page's default tab walks through the six stages. Ingest (gridstatus + EIA-930) caches DAM SPP, RTM SPP, demand forecast, and wind/solar net generation per year as parquet. Panel joins all series at hourly resolution and aggregates to daily means with weekday/holiday dummies. Features build the ARX/Probit design matrix Z = [const, Mon, Sat, Sun, Holiday, X..., spread_lag_2, spread_lag_7, p0_lag1]. Models fit ARX_levels, ARX_spread, and Probit closed-form / via Newton-Raphson. Walk-forward refits each model daily on a trailing T-day window. Evaluate computes paper Eqs (10)-(12) for classification (p, q₀, q₁) plus financial stats (total profit, Sharpe, max DD, Calmar, 5% VaR). Export writes seven JSON artefacts.",
+      },
+      {
+        title: "Backtest assumptions",
+        content:
+          "Position sizing is 1 MWh per hour committed to whichever market the strategy picks for that hour, summed daily into a $-denominated PnL. Trading cost is $0.50/MWh per market-switch (charged when Ŷ = 1 → commit to RT), modelling RT settlement uncertainty + execution slippage in lieu of a quoted bid-ask. The Sensitivity tab also reports the strategy at $0.00, $0.25, $1.00, and $2.00/MWh so the break-even cost is visible. Sharpe is dollar-Sharpe annualized as μ/σ × √365 (electricity trades 24×365). Max drawdown is reported as a positive $-figure on the cumulative equity. 5% VaR is the 5th percentile of the daily PnL distribution.",
+      },
+      {
+        title: "Data and the wind/solar caveat",
+        content:
+          "DAM and RTM SPPs come from ERCOT Public Reports NP4-180-ER and NP6-785-ER via gridstatus. Demand forecast (DF) is the EIA-930 day-ahead forecast — a true ex-ante series. Wind and solar use EIA-930 net generation (NG.WND, NG.SUN); EIA does not publish a day-ahead wind/solar forecast for arbitrary historical periods, so the pipeline substitutes a lag-1 persistence forecast (yesterday's realized) as the in-advance proxy. This caveat is documented in the metadata payload and on the Methodology tab — the demand-forecast variable in the regression is a true forecast; the wind and solar variables are persistence-derived.",
+      },
+      {
+        title: "Why ERCOT, why North Hub",
+        content:
+          "ERCOT is the closest US analog to the paper's German market: high renewable share (~28% wind+solar in 2024), volatile real-time prices, and a clean DA/RT settlement decision available to any market participant. HB_NORTH is the largest trading hub by liquidity. The 2022-2025 window captures Winter Storm Elliott (Dec 2022), the 2022-2023 European-spillover natural gas spike, and the high-solar 2024-2025 period. Calibration windows {30, 91, 182, 365} match the paper Sec 4 grid.",
+      },
+      {
+        title: "Implementation",
+        content:
+          "Python package power_spread/ with submodules sources, ingest, features, models (arx, probit, naive), backtest (walk_forward, strategy, pnl), evaluation (classification, financial), pipeline, and export. Walk-forward is sequential by day and refits each config once per OOS day — ARX is closed-form OLS via numpy lstsq; Probit uses statsmodels Newton-Raphson. Pre-built JSON pipeline, fully-static Next.js page, Recharts visualizations.",
+      },
+    ],
+    highlights: [
+      "Three paper-faithful forecast specs: ARX_levels, ARX_spread, Probit",
+      "Walk-forward refit per day across T ∈ {30, 91, 182, 365} calibration windows",
+      "$0.50/MWh switching cost + cost-sensitivity sweep at {0, 0.25, 1, 2}",
+      "Probit threshold sweep μ ∈ {0.30, 0.40, 0.50} per paper Sec 3.2",
+      "Classification (p, q₀, q₁) + financial (Sharpe, max DD, Calmar, VaR) reported side-by-side",
+      "Backtest pipeline is the default landing tab — ingest → models → walk-forward laid out as a six-stage flow",
+      "Pre-built JSON pipeline; static page; one CLI command rebuilds everything",
+    ],
+    custom: true,
+  },
+  {
     slug: "energy-trading-dashboard",
     code: "P0",
     title: "Henry Hub Natural Gas — Trading Dashboard",

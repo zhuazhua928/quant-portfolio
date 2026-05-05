@@ -1,0 +1,149 @@
+{
+  "stages": [
+    {
+      "key": "ingest",
+      "name": "Ingest",
+      "role": "Pull ERCOT DAM + RTM SPP, EIA-930 demand forecast, wind & solar net generation",
+      "files": [
+        "power_spread/sources/ercot_client.py",
+        "power_spread/sources/eia_ba_client.py"
+      ],
+      "inputs": [
+        "ERCOT NP4-180-ER (DAM SPP, hourly, by year)",
+        "ERCOT NP6-785-ER (RTM SPP, 15-min, by year)",
+        "EIA-930 EBA series: D, DF, NG.WND, NG.SUN at respondent ERCO"
+      ],
+      "outputs": [
+        "power_spread/_cache/dam_HB_NORTH_{year}.parquet (hourly)",
+        "power_spread/_cache/rtm_HB_NORTH_{year}.parquet (15-min -> hourly mean)",
+        "power_spread/_cache/eia_*.parquet"
+      ]
+    },
+    {
+      "key": "panel",
+      "name": "Panel",
+      "role": "Join DAM, RTM, EIA-930 series into one hourly panel; aggregate to daily means; add Mon/Sat/Sun/Holiday dummies",
+      "files": [
+        "power_spread/ingest/build_panel.py"
+      ],
+      "inputs": [
+        "yearly parquet caches from Ingest"
+      ],
+      "outputs": [
+        "hourly_panel: ts, da_price, rt_price, spread, demand_fcst, wind_actual, solar_actual",
+        "daily_panel: date, p0_mean, p1_mean, spread, demand_fcst_mean, wind_mean, solar_mean, dummies"
+      ]
+    },
+    {
+      "key": "features",
+      "name": "Features",
+      "role": "Construct deterministic D, exogenous X (with persistence-forecast proxy for wind/solar), spread lags L = {2, 7}, P0_lag1",
+      "files": [
+        "power_spread/features/transform.py"
+      ],
+      "inputs": [
+        "daily_panel"
+      ],
+      "outputs": [
+        "design matrix Z = [const, is_mon, is_sat, is_sun, is_holiday, X..., spread_lag_2, spread_lag_7, p0_lag1]",
+        "y_bin = 1{spread > 0}"
+      ]
+    },
+    {
+      "key": "models",
+      "name": "Models",
+      "role": "Three model specs from the paper: ARX_levels (fits P0 & P1 separately), ARX_spread (fits ΔP directly), Probit (Pr[ΔP > 0])",
+      "files": [
+        "power_spread/models/arx.py",
+        "power_spread/models/probit.py",
+        "power_spread/models/naive.py"
+      ],
+      "inputs": [
+        "design matrix Z"
+      ],
+      "outputs": [
+        "spread_hat (ARX) or P(Y=1) (Probit)",
+        "Naive-DA (Y=0 always) and Naive-RT (Y=1 always) baselines"
+      ]
+    },
+    {
+      "key": "walkforward",
+      "name": "Walk-forward Backtest",
+      "role": "For each OOS day t and each calibration window T ∈ {30, 91, 182, 365}: refit on [t-T, t-1], forecast for t, apply decision rule, settle P&L using realized spread minus $0.50/MWh per market-switch",
+      "files": [
+        "power_spread/backtest/walk_forward.py",
+        "power_spread/backtest/strategy.py",
+        "power_spread/backtest/pnl.py"
+      ],
+      "inputs": [
+        "daily panel + features"
+      ],
+      "outputs": [
+        "per-day forecasts (spread_hat or prob) per config",
+        "per-day decisions Y_hat and per-day P&L"
+      ]
+    },
+    {
+      "key": "evaluate",
+      "name": "Evaluate",
+      "role": "Classification metrics p, q0, q1 (paper Eqs 10-12); financial metrics total profit, annualized return, Sharpe, max drawdown, Calmar, 5% VaR",
+      "files": [
+        "power_spread/evaluation/classification.py",
+        "power_spread/evaluation/financial.py"
+      ],
+      "inputs": [
+        "per-day decisions + realized spreads"
+      ],
+      "outputs": [
+        "model-comparison grid",
+        "headline summary"
+      ]
+    },
+    {
+      "key": "export",
+      "name": "Export",
+      "role": "Write 7 JSON artifacts into src/data/power-spread/ for the Next.js dashboard to consume",
+      "files": [
+        "power_spread/export/export_dashboard.py"
+      ],
+      "inputs": [
+        "all of the above"
+      ],
+      "outputs": [
+        "pipeline.json, summary.json, models.json, equity.json,",
+        "decisions.json, sensitivity.json, metadata.json"
+      ]
+    }
+  ],
+  "paper": {
+    "title": "Day-Ahead vs. Intraday—Forecasting the Price Spread to Maximize Economic Benefits",
+    "authors": "Maciejowska, Nitka & Weron",
+    "venue": "Energies 12, 631 (2019)",
+    "doi": "10.3390/en12040631"
+  },
+  "scope": {
+    "market": "ERCOT, HB_NORTH",
+    "instruments": "Day-ahead (DAM) vs Real-time (RTM) Settlement Point Prices",
+    "window": "2022-01-01 to 2025-12-31",
+    "oos_start": "2023-01-01",
+    "calibration_windows": [
+      30,
+      91,
+      182,
+      365
+    ],
+    "thresholds": [
+      0.3,
+      0.4,
+      0.5
+    ],
+    "cost_per_mwh": 0.5,
+    "cost_sweep": [
+      0.0,
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ]
+  }
+}

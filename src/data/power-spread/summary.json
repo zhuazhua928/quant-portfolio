@@ -1,0 +1,48 @@
+{
+  "asof": "2026-05-05",
+  "best": {
+    "model": "probit",
+    "window": 365,
+    "x_cols": [
+      "wind_mean"
+    ],
+    "lag_set": [
+      2,
+      7
+    ],
+    "mu": 0.4,
+    "config_id": "probit__T365__X-wind__mu0.40",
+    "n": 1096,
+    "p": 0.580292,
+    "q0": 0.642401,
+    "q1": 0.42492,
+    "n_days": 1096,
+    "total_profit": 683.655133,
+    "ann_return_dollars": 227.67712,
+    "ann_return_pct": 0.246469,
+    "sharpe": 0.563297,
+    "max_drawdown": 222.648021,
+    "calmar": 1.022588,
+    "var_5pct": -6.742552,
+    "hit_rate": 0.389776
+  },
+  "scope": {
+    "market": "ERCOT HB_NORTH",
+    "window_start": "2022-01-01",
+    "window_end": "2025-12-31",
+    "oos_start": "2023-01-01",
+    "n_oos_days": 1096,
+    "avg_da_price": 38.49,
+    "avg_rt_price": 35.392,
+    "avg_spread": -3.097,
+    "spread_std": 46.533,
+    "spread_pos_share": 0.3768
+  },
+  "paper_reference": {
+    "best_polish_arx_p": 0.573,
+    "best_polish_arx_profit_pln": 84191,
+    "best_polish_arx_var5_pln": -815,
+    "naive_balancing_polish_profit_pln": 82576,
+    "note": "Maciejowska et al. (2019) Tables 3-4. Reproduced here as anchor only — markets and currency differ."
+  }
+}
